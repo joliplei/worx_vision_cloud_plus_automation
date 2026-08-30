@@ -2,94 +2,94 @@
   <img src="assets/worx-vision-cloud-plus-automation.png" alt="Worx Vision Cloud PLUS - Smart Mowing Automation for Home Assistant" width="100%">
 </p>
 
-Smart mowing automation for Worx mowers in Home Assistant, focused on Worx Vision / RTK models and still compatible with older wired Worx mowers.
+Intelligente Mäh-Automatisierung für Worx-Mäher in Home Assistant, fokussiert auf Worx Vision / RTK Modelle und weiterhin kompatibel mit älteren kabelgebundenen Worx-Mähern.
 
-This blueprint replaces a rigid mowing timetable with a weather-aware schedule. It estimates grass growth, chooses a dry and sensible mowing window, starts edge cutting first, then starts normal mowing after the mower returns to the dock and recharges. Vision / RTK mowers are monitored through automatic recharge and resume cycles until they really finish; older wired Worx mowers can still use a calculated runtime.
+Dieser Blueprint ersetzt einen starren Mähzeitplan durch einen wetterabhängigen Plan. Er schätzt das Graswachstum, wählt ein trockenes und sinnvolles Mähfenster, startet zuerst den Kantenschnitt und beginnt dann mit dem normalen Mähen, nachdem der Mäher zur Ladestation zurückgekehrt ist und aufgeladen wurde. Vision / RTK Mäher werden durch automatische Lade- und Fortsetzungszyklen überwacht, bis sie wirklich fertig sind; ältere kabelgebundene Worx-Mäher können weiterhin eine berechnete Laufzeit verwenden.
 
-This repository is separated from the custom integration repository on purpose:
+Dieses Repository ist absichtlich vom Repository der benutzerdefinierten Integration getrennt:
 
-- integration code lives in [`worx_vision_cloud_plus_github`](https://github.com/joliplei/worx_vision_cloud_plus_github),
-- automations and blueprints live here.
+- Integrationscode befindet sich in [`worx_vision_cloud_plus_github`](https://github.com/joliplei/worx_vision_cloud_plus_github),
+- Automatisierungen und Blueprints befinden sich hier.
 
-Prepared by **joliplei**.
+Ursprünglich erstellt von **Smart Service**. Übersetzt ins Deutsche von **joliplei**.
 
-## Import Blueprint
+## Blueprint importieren
 
 [![Open your Home Assistant instance and import this blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2Fjoliplei%2Fworx_vision_cloud_plus_automation%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fworx_vision_cloud_plus%2Fsmart_mowing_schedule.yaml)
 
-Manual import URL:
+Manuelle Import-URL:
 
 ```text
 https://github.com/joliplei/worx_vision_cloud_plus_automation/blob/main/blueprints/automation/worx_vision_cloud_plus/smart_mowing_schedule.yaml
 ```
 
-## What It Does
+## Was es macht
 
-- Estimates grass growth once a day with a Growth Potential (GP) model.
-- Uses local rain, temperature, sunlight/UV, optional outdoor humidity and soil moisture, irrigation and fertilization settings.
-- Accepts a separate optional `weather` entity for hourly planning.
-- Selects the best mowing time in the chosen time window, avoiding rain, wet grass and unsafe temperatures throughout the next three hours.
-- Runs edge cutting first, waits for the mower to return to the dock and recharge to at least `80%`, then starts normal one-time mowing.
-- Lets the user choose the mower cycle type: Vision / RTK self-finishing mowing or older wired Worx timed mowing.
-- Keeps three helpers updated: estimated grass growth, last full mowing, and next planned mowing.
-- Detects manual mowing started from the WORX app and resets the growth estimate only after the full mowing cycle is confirmed.
-- Rechecks live measurements, Worx Cloud rain delay and the hourly forecast before normal mowing begins after the edge pass.
+- Schätzt das Graswachstum einmal täglich mit einem Growth Potential (GP) Modell.
+- Nutzt lokalen Regen, Temperatur, Sonneneinstrahlung/UV, optionale Außenluftfeuchtigkeit und Bodenfeuchtigkeit, sowie Bewässerungs- und Düngungseinstellungen.
+- Akzeptiert eine separate optionale `weather` Entität für die stündliche Planung.
+- Wählt die beste Mähzeit im gewählten Zeitfenster, vermeidet Regen, nasses Gras und unsichere Temperaturen in den nächsten drei Stunden.
+- Führt zuerst den Kantenschnitt durch, wartet, bis der Mäher zur Ladestation zurückkehrt und auf mindestens `80%` aufgeladen ist, und startet dann das normale einmalige Mähen.
+- Lässt den Benutzer den Mähzyklus-Typ wählen: Vision / RTK selbstbeendendes Mähen oder zeitgesteuertes Mähen für ältere kabelgebundene Worx-Mäher.
+- Hält drei Helfer aktuell: geschätztes Graswachstum, letztes vollständiges Mähen und nächstes geplantes Mähen.
+- Erkennt manuelles Mähen aus der WORX-App und setzt die Wachstumsschätzung erst zurück, nachdem der vollständige Mähzyklus bestätigt wurde.
+- Überprüft Live-Messungen, Worx Cloud Regenverzögerung und die stündliche Vorhersage erneut, bevor das normale Mähen nach dem Kantenschnitt beginnt.
 
-## Mowing Logic
+## Mählogik
 
-The automatic start threshold is tuned for robotic mowing. Instead of waiting for tall grass, the blueprint prefers frequent light cuts, usually around `2-4.5 mm` of estimated growth depending on the selected cutting height. The one-third blade rule is kept as a safety limit, not as the normal target.
+Der automatische Startschwellenwert ist für das Roboter-Mähen optimiert. Anstatt auf hohes Gras zu warten, bevorzugt der Blueprint häufige, leichte Schnitte, normalerweise bei einem geschätzten Wachstum von `2-4.5 mm`, abhängig von der gewählten Schnitthöhe. Die Ein-Drittel-Blatt-Regel wird als Sicherheitsgrenze beibehalten, nicht als normales Ziel.
 
-In automatic mode the blueprint performs one forecast calculation after the daily grass-growth update and saves one concrete mowing time. The selected slot must have no forecast rain and must keep temperature and humidity safe during the expected mowing horizon. That saved time is not moved by background forecast changes. By default, mowing is allowed only between `10 C` and `25 C`. If it is too hot, the blueprint first looks for the nearest cooler time on the same day. Without FiatLux it searches until `22:00`; with the accessory confirmed it can continue searching through the night until `05:00`.
+Im automatischen Modus führt der Blueprint eine Vorhersageberechnung nach dem täglichen Graswachstums-Update durch und speichert eine konkrete Mähzeit. Das gewählte Zeitfenster darf keinen Regen in der Vorhersage haben und muss Temperatur und Luftfeuchtigkeit während des erwarteten Mähhorizonts im sicheren Bereich halten. Diese gespeicherte Zeit wird durch Hintergrund-Vorhersageänderungen nicht verschoben. Standardmäßig ist das Mähen nur zwischen `10 °C` und `25 °C` erlaubt. Wenn es zu heiß ist, sucht der Blueprint zuerst nach der nächsten kühleren Zeit am selben Tag. Ohne FiatLux sucht er bis `22:00`; mit bestätigtem Zubehör kann er die Suche über Nacht bis `05:00` fortsetzen.
 
-For the best local decisions, use your own weather station or local outdoor sensors for measured conditions. **MeteoFusion HA** is the recommended hourly forecast source: the blueprint automatically recognizes its `smart_service.weather.v1` context, uses live rain rate and daily rainfall, and prefers forecast slots with higher MeteoFusion confidence. A standard `weather` entity such as Tomorrow.io remains supported. If no hourly forecast is selected, the blueprint uses the configured mowing window and validates live conditions at start time.
+Für die besten lokalen Entscheidungen verwende deine eigene Wetterstation oder lokale Außensensoren für die gemessenen Bedingungen. **MeteoFusion HA** ist die empfohlene stündliche Vorhersagequelle: Der Blueprint erkennt automatisch dessen `smart_service.weather.v1` Kontext, verwendet die Live-Regenrate und den täglichen Niederschlag und bevorzugt Vorhersage-Zeitfenster mit höherer MeteoFusion-Sicherheit. Eine Standard `weather` Entität wie Tomorrow.io bleibt unterstützt. Wenn keine stündliche Vorhersage ausgewählt ist, verwendet der Blueprint das konfigurierte Mähfenster und validiert die Live-Bedingungen zum Startzeitpunkt.
 
-Forecast rain is used while choosing the original mowing time, so the saved plan prefers a genuinely dry forecast window. At the saved start time a working binary rain sensor becomes authoritative: a dry sensor allows the cycle to begin even if the forecast changed after planning. If the sensor changes to rain during edge or normal mowing, the robot is sent back to the dock. When the selected rain sensor is unavailable, MeteoFusion or the standard weather entity remains the protective fallback.
+Der vorhergesagte Regen wird bei der Auswahl der ursprünglichen Mähzeit berücksichtigt, sodass der gespeicherte Plan ein wirklich trockenes Vorhersagefenster bevorzugt. Zur gespeicherten Startzeit wird ein funktionierender binärer Regensensor maßgeblich: ein trockener Sensor ermöglicht den Start des Zyklus, selbst wenn sich die Vorhersage nach der Planung geändert hat. Wenn der Sensor während des Kanten- oder normalen Mähens auf Regen wechselt, wird der Roboter zur Ladestation zurückgeschickt. Wenn der ausgewählte Regensensor nicht verfügbar ist, bleiben MeteoFusion oder die Standard-Wetterentität der schützende Fallback.
 
-The post-rain drying delay starts only after a real `on` to `off` transition of the selected rain sensor. A Home Assistant restart or a temporary `unavailable` state followed by `off` cannot restart the drying timer. Trace precipitation below `0.2 mm` is ignored, preventing sensor noise from repeatedly postponing mowing.
+Die Trocknungsverzögerung nach Regen beginnt nur nach einem echten `on` zu `off` Wechsel des ausgewählten Regensensors. Ein Neustart von Home Assistant oder ein vorübergehender `unavailable` Status gefolgt von `off` kann den Trocknungs-Timer nicht neu starten. Spurenniederschlag unter `0.2 mm` wird ignoriert, was verhindert, dass Sensorrauschen das Mähen wiederholt verschiebt.
 
-Long hourly forecasts are capped to the planning horizon, so providers such as Pirate Weather can return many forecast records without making the Home Assistant template exceed its output limit.
+Lange stündliche Vorhersagen werden auf den Planungshorizont begrenzt, sodass Anbieter wie Pirate Weather viele Vorhersagedatensätze zurückgeben können, ohne dass die Home Assistant Vorlage ihr Ausgabelimit überschreitet.
 
-If actual rain or an unsafe measured temperature blocks the saved start, the blueprint performs one fresh forecast calculation, stores a new concrete time and explains the reason in the notification. Notifications are limited to the daily grass-growth calculation, a real postponement at start, mowing start, and mowing completion or interruption.
+Wenn tatsächlicher Regen oder eine unsichere gemessene Temperatur den gespeicherten Start blockiert, führt der Blueprint eine neue Vorhersageberechnung durch, speichert eine neue konkrete Zeit und erklärt den Grund in der Benachrichtigung. Benachrichtigungen sind auf die tägliche Graswachstumsberechnung, eine echte Verschiebung beim Start, den Mähstart und den Mäh-Abschluss oder -Abbruch beschränkt.
 
-## Before You Start
+## Bevor du startest
 
-Disable the mowing schedule in the WORX app so Home Assistant is the only scheduler controlling mower starts.
+Deaktiviere den Mähzeitplan in der WORX-App, damit Home Assistant der einzige Planer ist, der die Mäher-Starts steuert.
 
-Create three Home Assistant helpers before creating the automation:
+Erstelle drei Home Assistant Helfer, bevor du die Automatisierung erstellst:
 
-- `input_number` for estimated grass growth, for example `input_number.worx_estimated_grass_growth_mm`.
-- `input_datetime` for the last full mowing cycle, for example `input_datetime.worx_last_full_mow`.
-- `input_datetime` for the next planned mowing time, for example `input_datetime.worx_next_planned_mow`.
+- `input_number` für das geschätzte Graswachstum, zum Beispiel `input_number.worx_estimated_grass_growth_mm`.
+- `input_datetime` für den letzten vollständigen Mähzyklus, zum Beispiel `input_datetime.worx_last_full_mow`.
+- `input_datetime` für die nächste geplante Mähzeit, zum Beispiel `input_datetime.worx_next_planned_mow`.
 
-Documentation:
+Dokumentation:
 
-- [Smart mowing setup](docs/smart-mowing-schedule.md)
-- [Helper package example](docs/smart-mowing-helpers-package.yaml)
+- [Smart Mowing Einrichtung](docs/smart-mowing-schedule.md)
+- [Beispiel für ein Helper-Paket](docs/smart-mowing-helpers-package.yaml)
 
-Blueprint path:
+Blueprint-Pfad:
 
 ```text
 blueprints/automation/worx_vision_cloud_plus/smart_mowing_schedule.yaml
 ```
 
-## Requirements
+## Anforderungen
 
-- Home Assistant 2025.1.0 or newer.
-- Worx Vision Cloud PLUS integration `1.3.1` or newer installed from [`joliplei/worx_vision_cloud_plus_github`](https://github.com/joliplei/worx_vision_cloud_plus_github).
-- A `lawn_mower` entity for the mower.
-- The one-time mowing service from the Worx Vision Cloud PLUS integration.
-- Battery and rain entities from the integration.
-- Temperature, rain/weather and sunlight/UV sources from Home Assistant.
-- Optional automatic-irrigation setting for lawns that are watered regularly.
-- Three helpers: estimated grass growth, last full mowing, next planned mowing.
-- Optional soil moisture sensor.
+- Home Assistant 2025.1.0 oder neuer.
+- Worx Vision Cloud PLUS Integration `1.3.1` oder neuer, installiert von [`joliplei/worx_vision_cloud_plus_github`](https://github.com/joliplei/worx_vision_cloud_plus_github).
+- Eine `lawn_mower` Entität für den Mäher.
+- Der Dienst für einmaliges Mähen aus der Worx Vision Cloud PLUS Integration.
+- Batterie- und Regen-Entitäten aus der Integration.
+- Temperatur-, Regen-/Wetter- und Sonneneinstrahlung/UV-Quellen aus Home Assistant.
+- Optionale Einstellung für automatische Bewässerung für Rasenflächen, die regelmäßig bewässert werden.
+- Drei Helfer: geschätztes Graswachstum, letztes vollständiges Mähen, nächstes geplantes Mähen.
+- Optionaler Bodenfeuchtigkeitssensor.
 
-## Support
+## Unterstützung
 
-If this project helps you, you can support joliplei:
+Wenn dir dieses Projekt hilft, kannst du den ursprünglichen Entwickler Smart Service unterstützen:
 
 [Donate via Revolut](https://revolut.me/smartserwis)
 
-## Privacy
+## Datenschutz
 
-Do not publish Home Assistant storage files, access tokens, serial numbers, raw API responses or screenshots showing exact garden coordinates.
+Veröffentliche keine Home Assistant Speicherdateien, Zugriffstokens, Seriennummern, rohe API-Antworten oder Screenshots, die genaue Gartenkoordinaten zeigen.

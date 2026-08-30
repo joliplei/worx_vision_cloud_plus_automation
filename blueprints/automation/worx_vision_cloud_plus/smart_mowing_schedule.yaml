@@ -59,6 +59,8 @@ blueprint:
     - drei Home Assistant Helfer: Graswachstum, letztes Mähen und nächstes
       geplantes Mähen,
     - deaktivierter Mähplan in der WORX-App.
+
+    Ursprünglich erstellt von Smart Service, ins Deutsche übersetzt von joliplei.
   domain: automation
   author: joliplei
   homeassistant:
