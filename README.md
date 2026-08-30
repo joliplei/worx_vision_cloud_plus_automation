@@ -8,19 +8,19 @@ This blueprint replaces a rigid mowing timetable with a weather-aware schedule. 
 
 This repository is separated from the custom integration repository on purpose:
 
-- integration code lives in [`worx_vision_cloud_plus_github`](https://github.com/SmartServicePL/worx_vision_cloud_plus_github),
+- integration code lives in [`worx_vision_cloud_plus_github`](https://github.com/joliplei/worx_vision_cloud_plus_github),
 - automations and blueprints live here.
 
-Prepared by **Smart Service**.
+Prepared by **joliplei**.
 
 ## Import Blueprint
 
-[![Open your Home Assistant instance and import this blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FSmartServicePL%2Fworx_vision_cloud_plus_automation%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fworx_vision_cloud_plus%2Fsmart_mowing_schedule.yaml)
+[![Open your Home Assistant instance and import this blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2Fjoliplei%2Fworx_vision_cloud_plus_automation%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fworx_vision_cloud_plus%2Fsmart_mowing_schedule.yaml)
 
 Manual import URL:
 
 ```text
-https://github.com/SmartServicePL/worx_vision_cloud_plus_automation/blob/main/blueprints/automation/worx_vision_cloud_plus/smart_mowing_schedule.yaml
+https://github.com/joliplei/worx_vision_cloud_plus_automation/blob/main/blueprints/automation/worx_vision_cloud_plus/smart_mowing_schedule.yaml
 ```
 
 ## What It Does
@@ -75,7 +75,7 @@ blueprints/automation/worx_vision_cloud_plus/smart_mowing_schedule.yaml
 ## Requirements
 
 - Home Assistant 2025.1.0 or newer.
-- Worx Vision Cloud PLUS integration `1.3.1` or newer installed from [`SmartServicePL/worx_vision_cloud_plus_github`](https://github.com/SmartServicePL/worx_vision_cloud_plus_github).
+- Worx Vision Cloud PLUS integration `1.3.1` or newer installed from [`joliplei/worx_vision_cloud_plus_github`](https://github.com/joliplei/worx_vision_cloud_plus_github).
 - A `lawn_mower` entity for the mower.
 - The one-time mowing service from the Worx Vision Cloud PLUS integration.
 - Battery and rain entities from the integration.
@@ -86,7 +86,7 @@ blueprints/automation/worx_vision_cloud_plus/smart_mowing_schedule.yaml
 
 ## Support
 
-If this project helps you, you can support Smart Service:
+If this project helps you, you can support joliplei:
 
 [Donate via Revolut](https://revolut.me/smartserwis)
 

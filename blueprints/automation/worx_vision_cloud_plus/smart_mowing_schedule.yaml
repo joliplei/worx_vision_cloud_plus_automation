@@ -60,10 +60,10 @@ blueprint:
       geplantes Mähen,
     - deaktivierter Mähplan in der WORX-App.
   domain: automation
-  author: Smart Service
+  author: joliplei
   homeassistant:
     min_version: 2025.1.0
-  source_url: https://github.com/SmartServicePL/worx_vision_cloud_plus_automation/blob/main/blueprints/automation/worx_vision_cloud_plus/smart_mowing_schedule.yaml
+  source_url: https://github.com/joliplei/worx_vision_cloud_plus_automation/blob/main/blueprints/automation/worx_vision_cloud_plus/smart_mowing_schedule.yaml
   input:
     mower_section:
       name: Mähroboter
