@@ -1,180 +1,181 @@
 blueprint:
-  name: Worx Vision Cloud PLUS - inteligentny harmonogram koszenia
+  name: Worx Vision Cloud PLUS - Intelligenter Mähplan
   description: |
-    Inteligentny harmonogram koszenia dla robotów Worx, sterowany z Home
-    Assistant zamiast ze sztywnego harmonogramu w aplikacji WORX.
+    Intelligenter Mähplan für Worx-Mähroboter, gesteuert von Home
+    Assistant anstelle eines starren Zeitplans in der WORX-App.
 
-    Co robi automatyzacja:
-    - szacuje dzienny przyrost trawy modelem Growth Potential (GP),
-    - uwzględnia pogodę, opady, temperaturę, słońce, opcjonalną wilgotność gleby,
-      podlewanie i nawożenie,
-    - preferuje wybrane okno czasowe, ale w razie potrzeby szuka bezpiecznej godziny poza nim,
-    - omija deszcz, świeżo mokry trawnik i temperatury poza ustawionym zakresem,
-    - preferuje częste, lekkie koszenie robotem zamiast czekania na wysoką trawę.
+    Was die Automatisierung macht:
+    - schätzt das tägliche Graswachstum mit dem Growth Potential (GP) Modell,
+    - berücksichtigt Wetter, Niederschlag, Temperatur, Sonne, optionale Bodenfeuchtigkeit,
+      Bewässerung und Düngung,
+    - bevorzugt das gewählte Zeitfenster, sucht aber bei Bedarf eine sichere Zeit außerhalb davon,
+    - vermeidet Regen, frisch nassen Rasen und Temperaturen außerhalb des eingestellten Bereichs,
+    - bevorzugt häufiges, leichtes Mähen mit dem Roboter anstatt auf hohes Gras zu warten.
 
-    Źródło pogody:
-    - własna stacja pogodowa lub lokalne czujniki dostarczają rzeczywiste pomiary,
-    - zalecana integracja MeteoFusion HA dostarcza lokalnie korygowaną prognozę
-      godzinową, bieżący opad i ocenę jakości prognozy,
-    - można również użyć innej encji weather, np. Tomorrow.io,
-    - prognoza jest używana raz podczas planowania do wybrania konkretnej godziny
-      bez opadu i z bezpieczną temperaturą,
-    - zapisana godzina nie jest później przesuwana przez okresowe zmiany prognozy,
-    - w chwili startu pierwszeństwo mają rzeczywiste czujniki: przy suchej pogodzie
-      robot rusza, a po wykryciu faktycznego deszczu wraca do bazy,
-    - czas schnięcia rozpoczyna się tylko po rzeczywistym przejściu czujnika opadu
-      z `on` na `off`; restart HA lub chwilowa niedostępność czujnika nie udają deszczu,
-    - bez prognozy automatyzacja używa wybranego okna i sprawdza rzeczywiste
-      warunki bezpośrednio przed startem.
+    Wetterquelle:
+    - eigene Wetterstation oder lokale Sensoren liefern Echtzeitmessungen,
+    - die empfohlene MeteoFusion HA Integration liefert eine lokal korrigierte
+      stündliche Vorhersage, aktuellen Niederschlag und eine Bewertung der Vorhersagequalität,
+    - es kann auch eine andere weather-Entität verwendet werden, z.B. Tomorrow.io,
+    - die Vorhersage wird einmalig bei der Planung verwendet, um eine konkrete Stunde
+      ohne Niederschlag und mit einer sicheren Temperatur auszuwählen,
+    - die gespeicherte Zeit wird später nicht durch regelmäßige Änderungen der Vorhersage verschoben,
+    - beim Start haben die tatsächlichen Sensoren Vorrang: bei trockenem Wetter
+      startet der Roboter, bei tatsächlichem Regen kehrt er zur Basis zurück,
+    - die Trocknungszeit beginnt erst nach einem tatsächlichen Wechsel des Regensensors
+      von `on` auf `off`; ein Neustart von HA oder eine vorübergehende Nichtverfügbarkeit des Sensors simulieren keinen Regen,
+    - ohne Vorhersage nutzt die Automatisierung das gewählte Fenster und prüft die tatsächlichen
+      Bedingungen direkt vor dem Start.
 
-    Jak wygląda cykl koszenia:
-    1. Home Assistant uruchamia osobne przycinanie krawędzi.
-    2. Automatyzacja czeka, aż robot wróci do bazy.
-    3. Robot ładuje baterię do minimum 80%.
-    4. Temperatura, deszcz, wilgotność i prognoza na najbliższe godziny są
-       sprawdzane ponownie.
-    5. Dopiero wtedy startuje normalne koszenie jednorazowe.
+    Wie sieht der Mähzyklus aus:
+    1. Home Assistant startet einen separaten Kantenschnitt.
+    2. Die Automatisierung wartet, bis der Roboter zur Basis zurückkehrt.
+    3. Der Roboter lädt den Akku auf mindestens 80%.
+    4. Temperatur, Regen, Luftfeuchtigkeit und die Vorhersage für die nächsten Stunden werden
+       erneut überprüft.
+    5. Erst dann startet das normale einmalige Mähen.
 
-    Typ robota:
-    - Worx Vision / RTK sam kończy koszenie według mapy lub strefy. Użytkownik
-      nie musi ustawiać czasu pełnego koszenia. Powrót z niską baterią, ładowanie
-      i automatyczne wznowienie są traktowane jako jeden cykl.
-    - Starsze roboty Worx z przewodem granicznym nadal używają wyliczonego
-      czasu pracy, bo tego wymaga ich tryb koszenia jednorazowego.
+    Robotertyp:
+    - Worx Vision / RTK beendet das Mähen nach Karte oder Zone selbstständig. Der Benutzer
+      muss keine Zeit für das vollständige Mähen einstellen. Rückkehr bei niedrigem Akkustand, Aufladen
+      und automatische Fortsetzung werden als ein Zyklus behandelt.
+    - Ältere Worx-Roboter mit Begrenzungskabel verwenden weiterhin die berechnete
+      Arbeitszeit, da dies ihr Modus für einmaliges Mähen erfordert.
 
-    Tryby pracy:
-    - tryb automatyczny wybiera najlepszy termin z prognozy godzinowej,
-    - przy zbyt wysokiej temperaturze najpierw szuka chłodniejszej godziny tego
-      samego dnia; z FiatLux może wykorzystać także godziny nocne do 05:00,
-    - tryb stałej godziny działa jak klasyczny harmonogram z drugą próbą startu,
-    - koszenie nocne 22:00-05:00 jest dostępne tylko po potwierdzeniu akcesorium
-      FiatLux.
+    Betriebsmodi:
+    - der automatische Modus wählt den besten Zeitpunkt aus der stündlichen Vorhersage,
+    - bei zu hoher Temperatur sucht er zuerst nach einer kühleren Stunde desselben
+      Tages; mit FiatLux kann er auch die Nachtstunden bis 05:00 Uhr nutzen,
+    - der Modus mit fester Zeit funktioniert wie ein klassischer Zeitplan mit einem zweiten Startversuch,
+    - Nachtmähen von 22:00 bis 05:00 Uhr ist nur nach Bestätigung des FiatLux-Zubehörs verfügbar.
 
-    Powiadomienia:
-    - po dziennym przeliczeniu przyrostu trawy,
-    - po rozpoczęciu cyklu koszenia,
-    - po zakończeniu albo przerwaniu cyklu po realnym starcie.
+    Benachrichtigungen:
+    - nach der täglichen Berechnung des Graswachstums,
+    - nach dem Start des Mähzyklus,
+    - nach Abschluss oder Unterbrechung des Zyklus nach einem tatsächlichen Start.
 
-    Wymagania:
-    - integracja Worx Vision Cloud PLUS 1.3.1 lub nowsza,
-    - trzy helpery Home Assistant: przyrost trawy, ostatnie koszenie i następne
-      planowane koszenie,
-    - wyłączony harmonogram koszenia w aplikacji WORX.
+    Anforderungen:
+    - Worx Vision Cloud PLUS Integration 1.3.1 oder neuer,
+    - drei Home Assistant Helfer: Graswachstum, letztes Mähen und nächstes
+      geplantes Mähen,
+    - deaktivierter Mähplan in der WORX-App.
+
+    Ursprünglich erstellt von Smart Service, ins Deutsche übersetzt von joliplei.
   domain: automation
-  author: Smart Service
+  author: joliplei
   homeassistant:
     min_version: 2025.1.0
-  source_url: https://github.com/SmartServicePL/worx_vision_cloud_plus_automation/blob/main/blueprints/automation/worx_vision_cloud_plus/smart_mowing_schedule.yaml
+  source_url: https://github.com/joliplei/worx_vision_cloud_plus_automation/blob/main/blueprints/automation/worx_vision_cloud_plus/smart_mowing_schedule.yaml
   input:
     mower_section:
-      name: Kosiarka
+      name: Mähroboter
       icon: mdi:robot-mower
       input:
         mower_entity:
-          name: Kosiarka
-          description: Encja lawn_mower z integracji Worx Vision Cloud PLUS.
+          name: Mähroboter
+          description: Entität lawn_mower aus der Worx Vision Cloud PLUS Integration.
           selector:
             entity:
               filter:
                 - domain: lawn_mower
         battery_sensor:
-          name: Bateria
-          description: Sensor procentu baterii kosiarki.
+          name: Akku
+          description: Sensor für den Akkustand des Mähroboters (in Prozent).
           selector:
             entity:
               filter:
                 - domain: sensor
         rain_binary_sensor:
-          name: Bieżący stan opadu
-          description: Binary sensor informujący, czy aktualnie pada. Może pochodzić z kosiarki albo lokalnej stacji pogodowej. Gdy jest dostępny, jego rzeczywisty pomiar ma pierwszeństwo nad prognozą deszczu. Czas schnięcia jest liczony tylko po prawdziwym przejściu z opadu do stanu suchego, a nie po restarcie lub chwilowej niedostępności encji.
+          name: Aktueller Niederschlagsstatus
+          description: Binärer Sensor, der anzeigt, ob es aktuell regnet. Kann vom Mähroboter oder einer lokalen Wetterstation stammen. Wenn verfügbar, hat die tatsächliche Messung Vorrang vor der Regenvorhersage. Die Trocknungszeit wird nur nach einem tatsächlichen Wechsel vom Regen in den trockenen Zustand berechnet, nicht nach einem Neustart oder vorübergehender Nichtverfügbarkeit der Entität.
           selector:
             entity:
               filter:
                 - domain: binary_sensor
     weather_section:
-      name: Pogoda
+      name: Wetter
       icon: mdi:weather-partly-rainy
       input:
         temperature_source_entity:
-          name: Temperatura
-          description: Czujnik temperatury zewnetrznej albo encja weather z atrybutem temperature.
+          name: Temperatur
+          description: Außentemperatursensor oder weather-Entität mit dem Attribut temperature.
           selector:
             entity:
               filter:
                 - domain: sensor
                 - domain: weather
         rain_source_entity:
-          name: Zmierzony opad
-          description: Sensor sumy opadu z bieżącego dnia lub ostatnich 24 godzin albo encja weather. Nie wybieraj chwilowego natężenia opadu. W MeteoFusion HA suma opadu jest pobierana automatycznie.
+          name: Gemessener Niederschlag
+          description: Sensor für die Niederschlagssumme des aktuellen Tages oder der letzten 24 Stunden oder eine weather-Entität. Wähle nicht die momentane Niederschlagsintensität. Bei MeteoFusion HA wird die Niederschlagssumme automatisch abgerufen.
           selector:
             entity:
               filter:
                 - domain: sensor
                 - domain: weather
         forecast_weather_entity:
-          name: Prognoza godzinowa opcjonalnie
-          description: Zalecana jest encja weather z integracji MeteoFusion HA. Automatyzacja raz wybierze z jej prognozy konkretną suchą godzinę z bezpieczną temperaturą i zapisze ją do czasu startu. Obsługiwane są również zwykłe encje weather, np. Tomorrow.io. Bez prognozy używane jest wybrane okno, a bieżące warunki są sprawdzane w chwili startu.
+          name: Stündliche Vorhersage (optional)
+          description: Empfohlen wird eine weather-Entität aus der MeteoFusion HA Integration. Die Automatisierung wählt einmalig aus ihrer Vorhersage eine konkrete trockene Stunde mit sicherer Temperatur und speichert sie bis zum Start. Es werden auch reguläre weather-Entitäten unterstützt, z.B. Tomorrow.io. Ohne Vorhersage wird das gewählte Fenster verwendet und die aktuellen Bedingungen werden zum Startzeitpunkt geprüft.
           default: ""
           selector:
             entity:
               filter:
                 - domain: weather
         outdoor_humidity_sensor:
-          name: Wilgotność powietrza opcjonalnie
-          description: Lokalny sensor wilgotności zewnętrznej. Pomaga rozpoznać rosę i bardzo mokrą trawę. Bez niego automatyzacja użyje wilgotności z encji weather, jeśli jest dostępna.
+          name: Luftfeuchtigkeit (optional)
+          description: Lokaler Außenluftfeuchtigkeitssensor. Hilft, Tau und sehr nasses Gras zu erkennen. Ohne diesen verwendet die Automatisierung die Luftfeuchtigkeit aus der weather-Entität, falls verfügbar.
           default: ""
           selector:
             entity:
               filter:
                 - domain: sensor
         sunlight_source_entity:
-          name: Naslonecznienie / UV
-          description: Sensor UV/naslonecznienia albo encja weather z atrybutem uv_index.
+          name: Sonneneinstrahlung / UV
+          description: UV-/Sonneneinstrahlungssensor oder weather-Entität mit dem Attribut uv_index.
           selector:
             entity:
               filter:
                 - domain: sensor
                 - domain: weather
         soil_moisture_sensor:
-          name: Wilgotnosc gleby opcjonalnie
-          description: Mozesz zostawic puste. Wtedy automatyzacja policzy wirtualna wilgotnosc z pogody.
+          name: Bodenfeuchtigkeit (optional)
+          description: Kannst du leer lassen. Dann berechnet die Automatisierung eine virtuelle Feuchtigkeit basierend auf dem Wetter.
           default: ""
           selector:
             entity:
               filter:
                 - domain: sensor
     helpers_section:
-      name: Helpery
+      name: Helfer
       icon: mdi:database-clock
       input:
         growth_helper:
-          name: Przyrost trawy
-          description: Helper input_number przechowujacy szacowany przyrost trawy od ostatniego pelnego koszenia.
+          name: Graswachstum
+          description: input_number-Helfer, der das geschätzte Graswachstum seit dem letzten vollständigen Mähen speichert.
           selector:
             entity:
               filter:
                 - domain: input_number
         last_mow_helper:
-          name: Ostatnie koszenie
-          description: Helper input_datetime aktualizowany po pelnym cyklu koszenia.
+          name: Letztes Mähen
+          description: input_datetime-Helfer, der nach einem vollständigen Mähzyklus aktualisiert wird.
           selector:
             entity:
               filter:
                 - domain: input_datetime
         next_mow_helper:
-          name: Nastepne koszenie
-          description: Helper input_datetime, w ktorym automatyzacja zapisuje przewidywany termin nastepnego koszenia.
+          name: Nächstes Mähen
+          description: input_datetime-Helfer, in dem die Automatisierung den voraussichtlichen Zeitpunkt des nächsten Mähens speichert.
           selector:
             entity:
               filter:
                 - domain: input_datetime
     simple_settings_section:
-      name: Proste ustawienia
+      name: Einfache Einstellungen
       icon: mdi:tune-variant
       input:
         mower_cycle_type:
-          name: Typ robota
-          description: Dla Worx Vision / RTK robot sam kończy koszenie według mapy. Dla starszych robotów z przewodem granicznym automatyzacja używa wyliczonego czasu pracy.
+          name: Robotertyp
+          description: Bei Worx Vision / RTK beendet der Roboter das Mähen nach der Karte selbstständig. Für ältere Roboter mit Begrenzungskabel verwendet die Automatisierung die berechnete Arbeitszeit.
           default: vision_rtk
           selector:
             select:
@@ -182,17 +183,17 @@ blueprint:
               options:
                 - label: Worx Vision / RTK
                   value: vision_rtk
-                - label: Starszy Worx z przewodem granicznym
+                - label: Älterer Worx mit Begrenzungskabel
                   value: wired_timed
         mower_model:
-          name: Model kosiarki
-          description: Wybierz model WORX Vision / Vision Cloud albo tryb ręczny dla innego modelu.
+          name: Mährobotermodell
+          description: Wähle ein WORX Vision / Vision Cloud Modell oder den manuellen Modus für ein anderes Modell.
           default: custom
           selector:
             select:
               mode: dropdown
               options:
-                - label: Recznie / inny model
+                - label: Manuell / anderes Modell
                   value: custom
                 - label: Vision AI S250 WR202E - 250 m2
                   value: wr202e_250
@@ -241,8 +242,8 @@ blueprint:
                 - label: Vision Cloud 4WD 1 acre WR344
                   value: wr344_us_4047
         lawn_area_m2:
-          name: Powierzchnia trawnika
-          description: Powierzchnia robocza trawnika w metrach kwadratowych.
+          name: Rasenfläche
+          description: Arbeitsfläche des Rasens in Quadratmetern.
           default: 500
           selector:
             number:
@@ -252,20 +253,20 @@ blueprint:
               unit_of_measurement: m2
               mode: box
         growth_threshold_mode:
-          name: Moment startu koszenia
-          description: Automatyczny tryb dobiera niski prog startu dla robota koszacego. Zasada 1/3 zdzbla jest traktowana tylko jako limit bezpieczenstwa, a nie jako prog startu.
+          name: Mähstartzeitpunkt
+          description: Der automatische Modus wählt einen niedrigen Startschwellenwert für den Mähroboter. Die 1/3-Regel für die Grashalme wird nur als Sicherheitslimit behandelt, nicht als Startschwellenwert.
           default: auto_cutting_height
           selector:
             select:
               mode: dropdown
               options:
-                - label: Automatycznie dla robota
+                - label: Automatisch für Roboter
                   value: auto_cutting_height
-                - label: Reczny prog wzrostu
+                - label: Manueller Wachstumsschwellenwert
                   value: manual
         cutting_height_mm:
-          name: Wysokosc koszenia
-          description: Docelowa wysokosc trawy ustawiona w kosiarce. Automatyzacja uzywa jej do dobrania malego progu startu i limitu bezpiecznego koszenia.
+          name: Schnitthöhe
+          description: Im Mähroboter eingestellte Zielhöhe des Grases. Die Automatisierung nutzt sie, um einen kleinen Startschwellenwert und ein sicheres Mählimit festzulegen.
           default: 40
           selector:
             number:
@@ -275,77 +276,77 @@ blueprint:
               unit_of_measurement: mm
               mode: slider
         planning_mode:
-          name: Tryb wyboru godziny
-          description: Automatycznie wybiera najlepsza godzine z prognozy albo trzyma sie stalej godziny.
+          name: Zeitauswahlmodus
+          description: Wählt automatisch die beste Zeit aus der Vorhersage oder hält sich an eine feste Zeit.
           default: auto
           selector:
             select:
               mode: dropdown
               options:
-                - label: Automatycznie z prognozy pogody
+                - label: Automatisch aus Wettervorhersage
                   value: auto
-                - label: Stala godzina
+                - label: Feste Zeit
                   value: fixed
         mowing_window_preset:
-          name: Preferowane okno koszenia
-          description: Automatyzacja najpierw szuka bezpiecznej godziny w tym oknie. Jeżeli pogoda na to nie pozwala, może wybrać godzinę poza oknem jeszcze tego samego dnia. Opcja "Wlasne godziny" używa godzin ustawionych poniżej.
+          name: Bevorzugtes Mähfenster
+          description: Die Automatisierung sucht zunächst eine sichere Stunde in diesem Fenster. Wenn das Wetter dies nicht zulässt, kann sie noch am selben Tag eine Zeit außerhalb des Fensters wählen. Die Option "Eigene Zeiten" verwendet die unten eingestellten Stunden.
           default: before_noon
           selector:
             select:
               mode: dropdown
               options:
-                - label: Rano (07:00 - 10:00)
+                - label: Morgen (07:00 - 10:00)
                   value: morning
-                - label: Przed poludniem (09:00 - 12:00)
+                - label: Vormittag (09:00 - 12:00)
                   value: before_noon
-                - label: Poludnie (11:00 - 14:00)
+                - label: Mittag (11:00 - 14:00)
                   value: noon
-                - label: Popoludnie (14:00 - 17:00)
+                - label: Nachmittag (14:00 - 17:00)
                   value: afternoon
-                - label: Wieczor (17:00 - 20:00)
+                - label: Abend (17:00 - 20:00)
                   value: evening
-                - label: Noc (22:00 - 05:00)
+                - label: Nacht (22:00 - 05:00)
                   value: night
-                - label: Wlasne godziny
+                - label: Eigene Zeiten
                   value: custom
         fiatlux_installed:
-          name: Czy robot ma zamontowane akcesorium FiatLux?
-          description: Zaznacz tylko wtedy, gdy robot ma oswietlenie FiatLux. Jest wymagane dla okna nocnego 22:00-05:00.
+          name: Hat der Roboter das FiatLux-Zubehör montiert?
+          description: Nur ankreuzen, wenn der Roboter über eine FiatLux-Beleuchtung verfügt. Dies ist für das Nachtfenster von 22:00 bis 05:00 Uhr erforderlich.
           default: false
           selector:
             boolean:
         primary_start_time:
-          name: Wlasny poczatek okna
-          description: Uzywane przy opcji "Wlasne godziny". W trybie stalej godziny to glowny start.
+          name: Eigener Fensteranfang
+          description: Wird bei der Option "Eigene Zeiten" verwendet. Im Festzeitmodus ist dies der Hauptstart.
           default: "10:00:00"
           selector:
             time:
         backup_start_time:
-          name: Wlasny koniec okna
-          description: Uzywane przy opcji "Wlasne godziny". W trybie stalej godziny to druga proba.
+          name: Eigenes Fensterende
+          description: Wird bei der Option "Eigene Zeiten" verwendet. Im Festzeitmodus ist dies der zweite Versuch.
           default: "16:30:00"
           selector:
             time:
         automatic_irrigation_enabled:
-          name: Automatyczne nawadnianie
-          description: Wlacz, jesli trawnik jest regularnie podlewany automatycznie.
+          name: Automatische Bewässerung
+          description: Aktivieren, wenn der Rasen regelmäßig automatisch bewässert wird.
           default: false
           selector:
             boolean:
         fertilization_enabled:
-          name: Trawnik nawozony
-          description: Wlacz, jesli trawnik jest regularnie nawozony.
+          name: Gedüngter Rasen
+          description: Aktivieren, wenn der Rasen regelmäßig gedüngt wird.
           default: false
           selector:
             boolean:
     advanced_growth_section:
-      name: Zaawansowane - wzrost trawy
+      name: Erweitert - Graswachstum
       icon: mdi:sprout
       collapsed: true
       input:
         growth_threshold_mm:
-          name: Reczny prog startu koszenia
-          description: Uzywany tylko wtedy, gdy moment startu koszenia ustawiono na "Reczny prog wzrostu".
+          name: Manueller Mähstartschwellenwert
+          description: Wird nur verwendet, wenn der Mähstartzeitpunkt auf "Manueller Wachstumsschwellenwert" eingestellt ist.
           default: 3
           selector:
             number:
@@ -355,8 +356,8 @@ blueprint:
               unit_of_measurement: mm
               mode: slider
         high_growth_threshold_mm:
-          name: Prog intensywnego koszenia
-          description: W trybie automatycznym jest wyliczany z progu startu i limitu 1/3 wysokosci koszenia. Ten suwak dziala tylko przy recznym progu wzrostu.
+          name: Schwellenwert für intensives Mähen
+          description: Im automatischen Modus wird er aus dem Startschwellenwert und dem 1/3-Schnitthöhenlimit berechnet. Dieser Schieberegler funktioniert nur beim manuellen Wachstumsschwellenwert.
           default: 6
           selector:
             number:
@@ -366,8 +367,8 @@ blueprint:
               unit_of_measurement: mm
               mode: slider
         irrigation_growth_adjustment_percent:
-          name: Korekta wzrostu przy nawadnianiu
-          description: Uzywane tylko przy wlaczonym automatycznym nawadnianiu.
+          name: Wachstumskorrektur bei Bewässerung
+          description: Wird nur bei aktivierter automatischer Bewässerung verwendet.
           default: 140
           selector:
             number:
@@ -377,8 +378,8 @@ blueprint:
               unit_of_measurement: "%"
               mode: slider
         fertilization_growth_adjustment_percent:
-          name: Korekta wzrostu przy nawozeniu
-          description: Uzywane tylko przy wlaczonym nawozeniu.
+          name: Wachstumskorrektur bei Düngung
+          description: Wird nur bei aktivierter Düngung verwendet.
           default: 125
           selector:
             number:
@@ -388,8 +389,8 @@ blueprint:
               unit_of_measurement: "%"
               mode: slider
         min_days_between_mows:
-          name: Minimalna przerwa miedzy koszeniami
-          description: Zabezpieczenie przed zbyt czestym uruchamianiem. Wartosc 1 dzien oznacza kolejny dzien kalendarzowy, zeby robot mogl kosic codziennie, gdy wzrost i pogoda sa odpowiednie.
+          name: Mindestpause zwischen Mähvorgängen
+          description: Schutz vor zu häufigem Starten. Ein Wert von 1 Tag bedeutet den nächsten Kalendertag, sodass der Roboter täglich mähen kann, wenn Wachstum und Wetter passen.
           default: 1
           selector:
             number:
@@ -399,13 +400,13 @@ blueprint:
               unit_of_measurement: d
               mode: slider
     advanced_runtime_section:
-      name: Zaawansowane - starsze roboty z przewodem
+      name: Erweitert - Ältere Roboter mit Kabel
       icon: mdi:timer-cog
       collapsed: true
       input:
         mower_capacity_m2_per_hour:
-          name: Ręczna wydajność kosiarki
-          description: Używane tylko przy typie "Starszy Worx z przewodem granicznym" i modelu "Ręcznie / inny model".
+          name: Manuelle Mähleistung
+          description: Wird nur beim Typ "Älterer Worx mit Begrenzungskabel" und dem Modell "Manuell / anderes Modell" verwendet.
           default: 80
           selector:
             number:
@@ -415,8 +416,8 @@ blueprint:
               unit_of_measurement: m2/h
               mode: slider
         model_capacity_adjustment_percent:
-          name: Korekta wydajnosci modelu
-          description: Dla starszych robotów z przewodem pozwala skorygować wyliczony czas pracy przy wąskich przejazdach, wielu strefach albo prostym trawniku.
+          name: Modellleistungskorrektur
+          description: Für ältere Roboter mit Kabel ermöglicht dies die Korrektur der berechneten Arbeitszeit bei engen Passagen, vielen Zonen oder einem einfachen Rasen.
           default: 100
           selector:
             number:
@@ -426,7 +427,7 @@ blueprint:
               unit_of_measurement: "%"
               mode: slider
         min_runtime_minutes:
-          name: Minimalny czas koszenia dla robota przewodowego
+          name: Minimale Mähzeit für Kabelroboter
           default: 45
           selector:
             number:
@@ -436,7 +437,7 @@ blueprint:
               unit_of_measurement: min
               mode: slider
         max_runtime_minutes:
-          name: Maksymalny czas koszenia dla robota przewodowego
+          name: Maximale Mähzeit für Kabelroboter
           default: 120
           selector:
             number:
@@ -446,17 +447,17 @@ blueprint:
               unit_of_measurement: min
               mode: slider
     advanced_safety_section:
-      name: Zaawansowane - bezpieczenstwo
+      name: Erweitert - Sicherheit
       icon: mdi:shield-check
       collapsed: true
       input:
         growth_update_time:
-          name: Godzina przeliczenia przyrostu
+          name: Zeitpunkt der Wachstumsberechnung
           default: "05:30:00"
           selector:
             time:
         min_battery_percent:
-          name: Minimalna bateria do startu
+          name: Minimaler Akkustand für den Start
           default: 45
           selector:
             number:
@@ -466,8 +467,8 @@ blueprint:
               unit_of_measurement: "%"
               mode: slider
         min_mowing_temperature_c:
-          name: Minimalna temperatura koszenia
-          description: Ponizej tej temperatury koszenie zostanie przelozone na cieplejszy termin.
+          name: Minimale Mähtemperatur
+          description: Unterhalb dieser Temperatur wird das Mähen auf einen wärmeren Zeitpunkt verschoben.
           default: 10
           selector:
             number:
@@ -477,8 +478,8 @@ blueprint:
               unit_of_measurement: "°C"
               mode: slider
         max_mowing_temperature_c:
-          name: Maksymalna temperatura koszenia
-          description: Powyzej tej temperatury koszenie zostanie przelozone na chlodniejszy termin.
+          name: Maximale Mähtemperatur
+          description: Oberhalb dieser Temperatur wird das Mähen auf einen kühleren Zeitpunkt verschoben.
           default: 25
           selector:
             number:
@@ -488,8 +489,8 @@ blueprint:
               unit_of_measurement: "°C"
               mode: slider
         max_rain_24h_mm:
-          name: Próg intensywnego opadu
-          description: Po przekroczeniu tej zmierzonej wartości automatyzacja podwaja czas schnięcia trawy. Sam opad nie blokuje koszenia przez całą dobę.
+          name: Schwellenwert für intensiven Niederschlag
+          description: Nach Überschreiten dieses gemessenen Wertes verdoppelt die Automatisierung die Grastrocknungszeit. Der Niederschlag allein blockiert das Mähen nicht den ganzen Tag.
           default: 3
           selector:
             number:
@@ -499,8 +500,8 @@ blueprint:
               unit_of_measurement: mm
               mode: slider
         max_soil_moisture_percent:
-          name: Maksymalna wilgotnosc gleby dla startu
-          description: "Ustaw ponizej 100%, jesli wilgotnosc gleby ma blokowac start. Domyslnie wilgotnosc sluzy tylko do liczenia przyrostu trawy."
+          name: Maximale Bodenfeuchtigkeit für den Start
+          description: "Auf unter 100% einstellen, wenn die Bodenfeuchtigkeit den Start blockieren soll. Standardmäßig dient die Feuchtigkeit nur zur Berechnung des Graswachstums."
           default: 100
           selector:
             number:
@@ -510,8 +511,8 @@ blueprint:
               unit_of_measurement: "%"
               mode: slider
         mowing_start_confirm_timeout_minutes:
-          name: Maksymalny czas potwierdzenia startu koszenia
-          description: Ile minut automatyzacja czeka na wyjazd po komendzie normalnego koszenia albo przycinania krawedzi.
+          name: Maximale Bestätigungszeit für den Mähstart
+          description: Wie viele Minuten die Automatisierung auf die Abfahrt nach dem Befehl zum normalen Mähen oder Kantenschneiden wartet.
           default: 5
           selector:
             number:
@@ -781,14 +782,14 @@ variables:
   rain_drying_ready_label: >-
     {% set ts = rain_drying_ready_ts | float(0) %}
     {% if ts <= 0 %}
-      brak opóźnienia
+      keine Verzögerung
     {% else %}
       {% set target_midnight = as_timestamp((ts | timestamp_custom('%Y-%m-%d', true)) ~ ' 00:00:00') %}
       {% set today_midnight = as_timestamp(today_at('00:00:00')) %}
       {% set days = ((target_midnight - today_midnight) / 86400) | round(0) | int %}
-      {% if days <= 0 %}dziś o {{ ts | timestamp_custom('%H:%M', true) }}
-      {% elif days == 1 %}jutro o {{ ts | timestamp_custom('%H:%M', true) }}
-      {% else %}za {{ days }} dni o {{ ts | timestamp_custom('%H:%M', true) }}{% endif %}
+      {% if days <= 0 %}heute um {{ ts | timestamp_custom('%H:%M', true) }}
+      {% elif days == 1 %}morgen um {{ ts | timestamp_custom('%H:%M', true) }}
+      {% else %}in {{ days }} Tagen um {{ ts | timestamp_custom('%H:%M', true) }}{% endif %}
     {% endif %}
   outdoor_humidity_percent: >-
     {% set selected = outdoor_humidity_sensor | default('', true) %}
@@ -982,9 +983,9 @@ variables:
     {% endif %}
   normal_mowing_mode_label: >-
     {% if mower_cycle_type == 'vision_rtk' %}
-      robot Vision / RTK sam kończy koszenie według mapy; czas w komendzie jest tylko technicznym limitem bezpieczeństwa
+      der Vision / RTK Roboter beendet das Mähen nach Karte selbstständig; die Zeit im Befehl ist nur ein technisches Sicherheitslimit
     {% else %}
-      starszy robot z przewodem używa wyliczonego czasu {{ normal_mowing_runtime_minutes }} min
+      der ältere Roboter mit Kabel verwendet die berechnete Zeit von {{ normal_mowing_runtime_minutes }} Min.
     {% endif %}
   next_mow_datetime: >-
     {% set planned_growth = new_growth_mm | float if trigger.id == 'update_growth' else estimated_growth_mm | float %}
@@ -1087,32 +1088,32 @@ variables:
     {% set temperature_available = temperature_available
        or (smart_weather_current_temperature_available | string | lower) == 'true' %}
     {% if states(mower_entity) != 'docked' %}
-      kosiarka nie jest w bazie, aktualny stan: {{ states(mower_entity) }}. Stare reczne koszenie nie bedzie wznawiane automatycznie
+      Mähroboter ist nicht in der Basis, aktueller Status: {{ states(mower_entity) }}. Altes manuelles Mähen wird nicht automatisch fortgesetzt
     {% elif mowing_window_preset == 'night' and not (fiatlux_installed | bool) %}
-      wybrano koszenie nocne, ale nie potwierdzono zamontowanego akcesorium FiatLux
+      Nachtmähen ausgewählt, aber montiertes FiatLux-Zubehör nicht bestätigt
     {% elif (states(battery_sensor) | float(0)) < (min_battery_percent | float) %}
-      bateria ma {{ states(battery_sensor) }}%, a wymagane minimum to {{ min_battery_percent }}%
+      Akku hat {{ states(battery_sensor) }}%, das erforderliche Minimum ist {{ min_battery_percent }}%
     {% elif not temperature_available %}
-      nie mozna odczytac aktualnej temperatury zewnetrznej
+      die aktuelle Außentemperatur kann nicht gelesen werden
     {% elif (temp_c | float) < (min_mowing_temperature_c | float) %}
-      temperatura wynosi {{ temp_c | round(1) }} st. C i jest nizsza od minimalnej temperatury koszenia {{ min_mowing_temperature_c }} st. C
+      die Temperatur beträgt {{ temp_c | round(1) }} °C und liegt unter der minimalen Mähtemperatur von {{ min_mowing_temperature_c }} °C
     {% elif (temp_c | float) > (max_mowing_temperature_c | float) %}
-      temperatura wynosi {{ temp_c | round(1) }} st. C i przekracza maksymalna temperature koszenia {{ max_mowing_temperature_c }} st. C
+      die Temperatur beträgt {{ temp_c | round(1) }} °C und überschreitet die maximale Mähtemperatur von {{ max_mowing_temperature_c }} °C
     {% elif (rain_observation_available | string | lower) != 'true' %}
-      nie można odczytać aktualnego stanu opadu ani z czujnika, ani z MeteoFusion HA
+      der aktuelle Niederschlagsstatus kann weder vom Sensor noch von MeteoFusion HA gelesen werden
     {% elif state_attr(mower_entity, 'rain_delay') == true %}
-      chmura Worx zgłasza aktywne opóźnienie po deszczu
+      die Worx Cloud meldet eine aktive Verzögerung nach Regen
     {% elif (rain_active_now | string | lower) == 'true' %}
-      lokalny pomiar lub MeteoFusion HA wskazuje trwający opad
+      lokale Messung oder MeteoFusion HA zeigt anhaltenden Niederschlag
     {% elif (outdoor_humidity_available | string | lower) == 'true'
           and (outdoor_humidity_percent | float(60)) > (wet_grass_humidity_percent | float(88)) %}
-      wilgotność powietrza wynosi {{ outdoor_humidity_percent | round(0) }}%, więc trawa może być mokra od rosy lub mgły
+      die Luftfeuchtigkeit beträgt {{ outdoor_humidity_percent | round(0) }}%, daher könnte das Gras durch Tau oder Nebel nass sein
     {% elif (soil_moisture | float) > (max_soil_moisture_percent | float) %}
-      gleba jest zbyt mokra: {{ soil_moisture }}%
+      der Boden ist zu nass: {{ soil_moisture }}%
     {% elif (estimated_growth_mm | float) < (growth_threshold_mm | float) %}
-      szacowany przyrost trawy to {{ estimated_growth_mm }} mm, a prog startu robota to {{ growth_threshold_mm }} mm{% if growth_threshold_mode == 'auto_cutting_height' %} (czeste koszenie po trochu; limit 1/3 to okolo {{ ((cutting_height_mm | float(40)) / 3) | round(1) }} mm){% endif %}
+      das geschätzte Graswachstum beträgt {{ estimated_growth_mm }} mm, der Startschwellenwert des Roboters liegt bei {{ growth_threshold_mm }} mm{% if growth_threshold_mode == 'auto_cutting_height' %} (häufiges leichtes Mähen; das 1/3-Limit liegt bei etwa {{ ((cutting_height_mm | float(40)) / 3) | round(1) }} mm){% endif %}
     {% elif (mowing_gap_ready_ts | float(0)) > as_timestamp(now()) %}
-      od ostatniego koszenia nie minela minimalna przerwa; najwczesniej {{ (mowing_gap_ready_ts | float(0)) | timestamp_custom('%Y-%m-%d %H:%M', true) }}
+      seit dem letzten Mähen ist die Mindestpause nicht verstrichen; frühestens am {{ (mowing_gap_ready_ts | float(0)) | timestamp_custom('%Y-%m-%d %H:%M', true) }}
     {% else %}
       {{ '' }}
     {% endif %}
@@ -1141,7 +1142,7 @@ actions:
                     value_template: "{{ (rain_stop_should_delay | string | lower) == 'true' }}"
                 sequence:
                   - action: input_datetime.set_datetime
-                    alias: Zachowaj czas schnięcia po rzeczywistym deszczu
+                    alias: Trocknungszeit nach tatsächlichem Regen beibehalten
                     target:
                       entity_id: !input next_mow_helper
                     data:
@@ -1158,7 +1159,7 @@ actions:
               manual_mow_started_ts: "{{ as_timestamp(trigger.to_state.last_changed) }}"
               manual_mow_started_at: >-
                 {{ as_timestamp(trigger.to_state.last_changed) | timestamp_custom('%d.%m %H:%M', true) }}
-          - alias: Monitoruj reczne koszenie, lacznie z doładowaniem Vision / RTK
+          - alias: Manuelles Mähen überwachen, inklusive Vision / RTK Aufladen
             repeat:
               while:
                 - condition: template
@@ -1193,16 +1194,16 @@ actions:
                   - action: persistent_notification.create
                     data:
                       notification_id: "{{ notification_id }}"
-                      title: "Worx: koszenie ręczne przerwane"
+                      title: "Worx: Manuelles Mähen unterbrochen"
                       message: |
-                        Robot nie potwierdził zakończenia pełnego koszenia.
+                        Der Roboter hat den Abschluss des vollständigen Mähens nicht bestätigt.
 
-                        Stan robota:
+                        Roboterstatus:
                         {{ states(mower_entity) }}.
 
-                        Trawa:
-                        Skumulowany przyrost pozostaje bez zmian: {{ estimated_growth_mm }} mm.
-                  - stop: Reczne koszenie nie zostalo potwierdzone jako zakonczone.
+                        Gras:
+                        Das kumulierte Wachstum bleibt unverändert: {{ estimated_growth_mm }} mm.
+                  - stop: Manuelles Mähen wurde nicht als abgeschlossen bestätigt.
           - variables:
               manual_mow_finished_ts: "{{ as_timestamp(states[mower_entity].last_changed) }}"
               manual_mow_finished_at: >-
@@ -1218,18 +1219,18 @@ actions:
                 {% set target_midnight = as_timestamp((ts | timestamp_custom('%Y-%m-%d', true)) ~ ' 00:00:00') %}
                 {% set today_midnight = as_timestamp(today_at('00:00:00')) %}
                 {% set days = ((target_midnight - today_midnight) / 86400) | round(0) | int %}
-                {% if days <= 0 %}dziś o {{ ts | timestamp_custom('%H:%M', true) }}
-                {% elif days == 1 %}jutro o {{ ts | timestamp_custom('%H:%M', true) }}
-                {% elif days == 2 %}za 2 dni o {{ ts | timestamp_custom('%H:%M', true) }}
-                {% else %}za {{ days }} dni o {{ ts | timestamp_custom('%H:%M', true) }}{% endif %}
+                {% if days <= 0 %}heute um {{ ts | timestamp_custom('%H:%M', true) }}
+                {% elif days == 1 %}morgen um {{ ts | timestamp_custom('%H:%M', true) }}
+                {% elif days == 2 %}in 2 Tagen um {{ ts | timestamp_custom('%H:%M', true) }}
+                {% else %}in {{ days }} Tagen um {{ ts | timestamp_custom('%H:%M', true) }}{% endif %}
           - action: input_datetime.set_datetime
-            alias: Zapisz reczne koszenie jako ostatnie koszenie
+            alias: Manuelles Mähen als letztes Mähen speichern
             target:
               entity_id: !input last_mow_helper
             data:
               datetime: "{{ manual_mow_finished_at }}"
           - action: input_number.set_value
-            alias: Wyzeruj przyrost po recznym koszeniu
+            alias: Wachstum nach manuellem Mähen zurücksetzen
             target:
               entity_id: !input growth_helper
             data:
@@ -1240,7 +1241,7 @@ actions:
                     value_template: "{{ (next_mow_helper | default('', true) | length) > 0 }}"
                 sequence:
                   - action: input_datetime.set_datetime
-                    alias: Przelicz nastepne koszenie po recznym koszeniu
+                    alias: Nächstes Mähen nach manuellem Mähen neu berechnen
                     target:
                       entity_id: "{{ next_mow_helper }}"
                     data:
@@ -1248,14 +1249,14 @@ actions:
           - action: persistent_notification.create
             data:
               notification_id: "{{ notification_id }}"
-              title: "Worx: koszenie ręczne zakończone"
+              title: "Worx: Manuelles Mähen abgeschlossen"
               message: |
-                Czas:
+                Zeit:
                 Start: {{ manual_mow_started_at }}
-                Koniec: {{ manual_mow_finished_label }}
-                Cały cykl do końcowego powrotu: {{ manual_mow_duration_minutes }} min.
+                Ende: {{ manual_mow_finished_label }}
+                Gesamter Zyklus bis zur endgültigen Rückkehr: {{ manual_mow_duration_minutes }} Min.
 
-                Następne koszenie:
+                Nächstes Mähen:
                 {{ manual_next_mow_label | trim }}
 
       - conditions:
@@ -1540,13 +1541,13 @@ actions:
                 {% set target_midnight = as_timestamp((ts | timestamp_custom('%Y-%m-%d', true)) ~ ' 00:00:00') %}
                 {% set today_midnight = as_timestamp(today_at('00:00:00')) %}
                 {% set days = ((target_midnight - today_midnight) / 86400) | round(0) | int %}
-                {% if days <= 0 %}dziś o {{ ts | timestamp_custom('%H:%M', true) }}
-                {% elif days == 1 %}jutro o {{ ts | timestamp_custom('%H:%M', true) }}
-                {% elif days == 2 %}za 2 dni o {{ ts | timestamp_custom('%H:%M', true) }}
-                {% else %}za {{ days }} dni o {{ ts | timestamp_custom('%H:%M', true) }}{% endif %}
+                {% if days <= 0 %}heute um {{ ts | timestamp_custom('%H:%M', true) }}
+                {% elif days == 1 %}morgen um {{ ts | timestamp_custom('%H:%M', true) }}
+                {% elif days == 2 %}in 2 Tagen um {{ ts | timestamp_custom('%H:%M', true) }}
+                {% else %}in {{ days }} Tagen um {{ ts | timestamp_custom('%H:%M', true) }}{% endif %}
               planned_next_mow_reason: >-
                 {% if planning_mode != 'auto' or weather_forecast is not defined or weather_forecast is not mapping %}
-                  wybrano termin z ustawionego okna koszenia, bez oceny prognozy godzinowej
+                  Ein Termin aus dem eingestellten Mähfenster wurde gewählt, ohne Bewertung der stündlichen Vorhersage
                 {% else %}
                   {% set items = weather_forecast.get(forecast_weather_entity | trim, {}).get('forecast', []) %}
                   {% set limited_items = items[:(weather_forecast_max_items | int(120))] %}
@@ -1596,34 +1597,34 @@ actions:
                     {% set inside_preferred_window = selected_clock >= primary_start_time_value and selected_clock <= backup_start_time_value %}
                   {% endif %}
                   {% if fc.seen == 0 %}
-                    to najbliższy sensowny termin, ale prognoza godzinowa nie ma już dokładnych danych dla tej godziny
+                    dies ist der nächste sinnvolle Termin, aber die stündliche Vorhersage hat für diese Stunde keine genauen Daten mehr
                   {% elif fc.temp < (min_mowing_temperature_c | float(10)) %}
-                    prognozowana temperatura {{ fc.temp | round(1) }} st. C jest nizsza od zalecanego minimum {{ min_mowing_temperature_c }} st. C, wiec termin moze zostac przesuniety
+                    die vorhergesagte Temperatur von {{ fc.temp | round(1) }} °C liegt unter dem empfohlenen Minimum von {{ min_mowing_temperature_c }} °C, daher könnte der Termin verschoben werden
                   {% elif fc.temp > (max_mowing_temperature_c | float(25)) %}
-                    prognozowana temperatura {{ fc.temp | round(1) }} st. C przekracza zalecane maksimum {{ max_mowing_temperature_c }} st. C, wiec termin moze zostac przesuniety
+                    die vorhergesagte Temperatur von {{ fc.temp | round(1) }} °C überschreitet das empfohlene Maximum von {{ max_mowing_temperature_c }} °C, daher könnte der Termin verschoben werden
                   {% elif (forecast_rain_is_advisory | string | lower) == 'true'
                         and ((fc.rain + future.rain) > (forecast_rain_block_mm | float(0.2)) or fc.condition in bad) %}
-                    prognoza zapowiada opad, ale rzeczywisty czujnik ma pierwszeństwo; robot wystartuje, jeśli w chwili startu czujnik nadal będzie suchy
+                    die Vorhersage kündigt Niederschlag an, aber der tatsächliche Sensor hat Vorrang; der Roboter startet, wenn der Sensor zum Startzeitpunkt immer noch trocken ist
                   {% elif (forecast_rain_is_advisory | string | lower) != 'true'
                         and ((fc.rain + future.rain) > (forecast_rain_block_mm | float(0.2)) or fc.condition in bad) %}
-                    to najbezpieczniejszy dostępny termin w prognozie, ale suma prognozowanego opadu podczas koszenia wynosi {{ (fc.rain + future.rain) | round(2) }} mm
+                    dies ist der sicherste verfügbare Termin in der Vorhersage, aber der vorhergesagte Niederschlag während des Mähens beträgt {{ (fc.rain + future.rain) | round(2) }} mm
                   {% elif (planned_next_mow_future_status | trim) != 'safe' %}
-                    prognoza nie potwierdza bezpiecznych warunków przez kolejne {{ forecast_dry_horizon_hours }} godz., więc termin może zostać ponownie przesunięty
+                    die Vorhersage bestätigt keine sicheren Bedingungen für die nächsten {{ forecast_dry_horizon_hours }} Stunden, daher könnte der Termin erneut verschoben werden
                   {% elif not inside_preferred_window %}
-                    to najbliższa bezpieczna godzina poza preferowanym oknem; w wybranym oknie nie ma warunków spełniających temperaturę, opad i wilgotność
+                    dies ist die nächste sichere Stunde außerhalb des bevorzugten Fensters; im gewählten Fenster gibt es keine Bedingungen, die Temperatur, Niederschlag und Luftfeuchtigkeit erfüllen
                   {% elif urgent_growth and not recent_wet and fc.humidity <= (wet_grass_humidity_percent | float(88)) %}
-                    przyrost trawy jest wysoki, więc automatyzacja wybrała najbliższe bezpieczne okno zamiast czekać na idealniejsze warunki kolejnego dnia
+                    das Graswachstum ist hoch, daher hat die Automatisierung das nächste sichere Fenster gewählt, anstatt auf idealere Bedingungen am nächsten Tag zu warten
                   {% elif recent_wet and (forecast_rain_is_advisory | string | lower) != 'true' %}
-                    to pierwsze sensowne okno po deszczu; automatyzacja odczekała, żeby trawnik nie był świeżo mokry
+                    dies ist das erste sinnvolle Fenster nach dem Regen; die Automatisierung hat gewartet, damit der Rasen nicht frisch nass ist
                   {% elif fc.humidity > (wet_grass_humidity_percent | float(88)) %}
-                    to najlepszy dostępny termin, ale wilgotność nadal jest wysoka, więc start może zostać ponownie przesunięty
+                    dies ist der beste verfügbare Termin, aber die Luftfeuchtigkeit ist immer noch hoch, daher könnte der Start erneut verschoben werden
                   {% else %}
-                    prognoza pokazuje brak deszczu, przerwę po opadach i najniższe ryzyko mokrej trawy w wybranym oknie
+                    die Vorhersage zeigt keinen Regen, eine Pause nach Niederschlägen und das geringste Risiko von nassem Gras im gewählten Fenster
                   {% endif %}
                 {% endif %}
               planned_next_mow_forecast: >-
                 {% if weather_forecast is not defined or weather_forecast is not mapping %}
-                  unknown;brak prognozy godzinowej dla wskazanego terminu
+                  unknown;keine stündliche Vorhersage für den angegebenen Termin
                 {% else %}
                   {% set items = weather_forecast.get(forecast_weather_entity | trim, {}).get('forecast', []) %}
                   {% set limited_items = items[:(weather_forecast_max_items | int(120))] %}
@@ -1675,24 +1676,24 @@ actions:
                       and fc.humidity <= (wet_grass_humidity_percent | float(88))
                       and (mowing_window_preset != 'night' or (fiatlux_installed | bool)) %}
                   {% set condition_names = {
-                    'clear-night': 'bezchmurnie',
-                    'cloudy': 'pochmurno',
-                    'exceptional': 'nietypowe warunki',
-                    'fog': 'mgła',
-                    'hail': 'grad',
-                    'lightning': 'burze',
-                    'lightning-rainy': 'burze z deszczem',
-                    'partlycloudy': 'częściowe zachmurzenie',
-                    'pouring': 'ulewny deszcz',
-                    'rainy': 'deszcz',
-                    'snowy': 'śnieg',
-                    'snowy-rainy': 'deszcz ze śniegiem',
-                    'sunny': 'słonecznie',
-                    'windy': 'wietrznie',
-                    'windy-variant': 'wietrznie z zachmurzeniem'
+                    'clear-night': 'klar',
+                    'cloudy': 'bewölkt',
+                    'exceptional': 'außergewöhnliche Bedingungen',
+                    'fog': 'Nebel',
+                    'hail': 'Hagel',
+                    'lightning': 'Gewitter',
+                    'lightning-rainy': 'Gewitter mit Regen',
+                    'partlycloudy': 'teilweise bewölkt',
+                    'pouring': 'starker Regen',
+                    'rainy': 'Regen',
+                    'snowy': 'Schnee',
+                    'snowy-rainy': 'Schneeregen',
+                    'sunny': 'sonnig',
+                    'windy': 'windig',
+                    'windy-variant': 'windig mit Wolken'
                   } %}
                   {% set condition_label = condition_names.get(fc.condition, fc.condition if fc.condition else 'brak opisu') %}
-                  {{ 'safe' if safe else 'unsafe' }};{{ condition_label }}, temperatura {{ fc.temp | round(1) }} st. C, opad w godzinie startu {{ fc.rain | round(2) }} mm, opad przez kolejne {{ forecast_dry_horizon_hours }} godz. {{ future.rain | round(2) }} mm, najwyższe ryzyko deszczu {{ [fc.probability, future.probability] | max | round(0) }}%, wilgotność {{ fc.humidity | round(0) }}%{% if (smart_weather_context_available | string | lower) == 'true' %}, pewność MeteoFusion {{ fc.confidence | round(0) }}%{% endif %}
+                  {{ 'safe' if safe else 'unsafe' }};{{ condition_label }}, Temperatur {{ fc.temp | round(1) }} °C, Niederschlag in der Startstunde {{ fc.rain | round(2) }} mm, Niederschlag in den nächsten {{ forecast_dry_horizon_hours }} Std. {{ future.rain | round(2) }} mm, höchstes Regenrisiko {{ [fc.probability, future.probability] | max | round(0) }}%, Luftfeuchtigkeit {{ fc.humidity | round(0) }}%{% if (smart_weather_context_available | string | lower) == 'true' %}, MeteoFusion-Sicherheit {{ fc.confidence | round(0) }}%{% endif %}
                 {% endif %}
           - choose:
               - conditions:
@@ -1722,45 +1723,45 @@ actions:
                   - action: persistent_notification.create
                     data:
                       notification_id: "{{ notification_id }}"
-                      title: "Worx: przeliczono przyrost"
+                      title: "Worx: Wachstum neu berechnet"
                       message: |
-                        Skumulowany przyrost: {{ new_growth_mm }} mm
-                        (próg {{ growth_threshold_mm }} mm).
+                        Kumuliertes Wachstum: {{ new_growth_mm }} mm
+                        (Schwellenwert {{ growth_threshold_mm }} mm).
                         {% set planned_date = (as_timestamp(planned_next_mow_datetime | trim) | timestamp_custom('%Y-%m-%d', true)) %}
                         {% set today_date = now().strftime('%Y-%m-%d') %}
 
-                        Dzisiejsza decyzja:
+                        Heutige Entscheidung:
                         {% if planned_date == today_date %}
-                        Kosiarka ma dziś zaplanowane koszenie.
+                        Für heute ist ein Mähen des Mähroboters geplant.
                         {% else %}
-                        Według aktualnych warunków kosiarka nie będzie dziś kosiła.
+                        Nach aktuellen Bedingungen wird der Mähroboter heute nicht mähen.
                         {% endif %}
 
                         {% if (planned_next_mow_forecast | trim).startswith('safe;') %}
-                        Planowane koszenie:
+                        Geplantes Mähen:
                         {{ planned_next_mow_label | trim }}.
 
-                        Prognoza podczas koszenia:
+                        Vorhersage während des Mähens:
                         {{ (planned_next_mow_forecast | trim).split(';', 1)[1] }}.
 
-                        Powód wyboru: {{ planned_next_mow_reason | trim }}.
+                        Auswahlgrund: {{ planned_next_mow_reason | trim }}.
 
-                        Termin został zapisany i nie będzie zmieniany w tle przed startem.
-                        W podanej godzinie automatyzacja sprawdzi rzeczywisty deszcz i temperaturę.
+                        Der Termin wurde gespeichert und wird im Hintergrund vor dem Start nicht geändert.
+                        Zur angegebenen Stunde prüft die Automatisierung den tatsächlichen Regen und die Temperatur.
                         {% else %}
-                        Wyznaczony termin kontroli:
+                        Festgelegter Prüftermin:
                         {{ planned_next_mow_label | trim }}.
 
-                        Status terminu:
-                        Prognoza nie potwierdza całego bezpiecznego cyklu.
+                        Terminstatus:
+                        Die Vorhersage bestätigt nicht den gesamten sicheren Zyklus.
 
-                        Prognoza dla tej godziny:
+                        Vorhersage für diese Stunde:
                         {{ (planned_next_mow_forecast | trim).split(';', 1)[1] }}.
 
-                        Powód wyboru: {{ planned_next_mow_reason | trim }}.
+                        Auswahlgrund: {{ planned_next_mow_reason | trim }}.
 
-                        Termin nie będzie przesuwany w tle. W tej godzinie automatyzacja
-                        sprawdzi rzeczywiste warunki i w razie blokady poda nową konkretną godzinę.
+                        Der Termin wird im Hintergrund nicht verschoben. Zu dieser Stunde wird die Automatisierung
+                        die tatsächlichen Bedingungen überprüfen und im Falle einer Blockierung eine neue konkrete Zeit angeben.
                         {% endif %}
       - conditions:
           - condition: template
@@ -2031,22 +2032,22 @@ actions:
           - variables:
               current_time_label: >-
                 {% set ts = as_timestamp(now()) %}
-                dziś o {{ ts | timestamp_custom('%H:%M', true) }}
+                heute um {{ ts | timestamp_custom('%H:%M', true) }}
               planned_retry_mow_label: >-
                 {% set raw = retry_mow_datetime | trim %}
                 {% set ts = as_timestamp(raw) %}
                 {% set target_midnight = as_timestamp((ts | timestamp_custom('%Y-%m-%d', true)) ~ ' 00:00:00') %}
                 {% set today_midnight = as_timestamp(today_at('00:00:00')) %}
                 {% set days = ((target_midnight - today_midnight) / 86400) | round(0) | int %}
-                {% if days <= 0 %}dziś o {{ ts | timestamp_custom('%H:%M', true) }}
-                {% elif days == 1 %}jutro o {{ ts | timestamp_custom('%H:%M', true) }}
-                {% elif days == 2 %}za 2 dni o {{ ts | timestamp_custom('%H:%M', true) }}
-                {% else %}za {{ days }} dni o {{ ts | timestamp_custom('%H:%M', true) }}{% endif %}
+                {% if days <= 0 %}heute um {{ ts | timestamp_custom('%H:%M', true) }}
+                {% elif days == 1 %}morgen um {{ ts | timestamp_custom('%H:%M', true) }}
+                {% elif days == 2 %}in 2 Tagen um {{ ts | timestamp_custom('%H:%M', true) }}
+                {% else %}in {{ days }} Tagen um {{ ts | timestamp_custom('%H:%M', true) }}{% endif %}
               planned_retry_mow_reason: >-
                 {% if (technical_retry_allowed | string | lower) == 'true' %}
-                  to szybka ponowna próba po przerwaniu technicznym; aktualne warunki pozwalają spróbować ponownie bez czekania do końca okna
+                  dies ist ein schneller erneuter Versuch nach einer technischen Unterbrechung; aktuelle Bedingungen erlauben einen erneuten Versuch ohne bis zum Ende des Fensters zu warten
                 {% elif planning_mode != 'auto' or weather_forecast_at_start is not defined or weather_forecast_at_start is not mapping %}
-                  wybrano kolejny termin z ustawionego okna koszenia, bez oceny prognozy godzinowej
+                  Ein weiterer Termin aus dem eingestellten Mähfenster wurde gewählt, ohne Bewertung der stündlichen Vorhersage
                 {% else %}
                   {% set items = weather_forecast_at_start.get(forecast_weather_entity | trim, {}).get('forecast', []) %}
                   {% set limited_items = items[:(weather_forecast_max_items | int(120))] %}
@@ -2096,34 +2097,34 @@ actions:
                     {% set inside_preferred_window = selected_clock >= primary_start_time_value and selected_clock <= backup_start_time_value %}
                   {% endif %}
                   {% if fc.seen == 0 %}
-                    to najbliższy sensowny termin, ale prognoza godzinowa nie ma już dokładnych danych dla tej godziny
+                    dies ist der nächste sinnvolle Termin, aber die stündliche Vorhersage hat für diese Stunde keine genauen Daten mehr
                   {% elif fc.temp < (min_mowing_temperature_c | float(10)) %}
-                    prognozowana temperatura {{ fc.temp | round(1) }} st. C jest nizsza od zalecanego minimum {{ min_mowing_temperature_c }} st. C, dlatego automatyzacja bedzie szukac cieplejszej godziny
+                    die vorhergesagte Temperatur von {{ fc.temp | round(1) }} °C liegt unter dem empfohlenen Minimum von {{ min_mowing_temperature_c }} °C, daher sucht die Automatisierung nach einer wärmeren Stunde
                   {% elif fc.temp > (max_mowing_temperature_c | float(25)) %}
-                    prognozowana temperatura {{ fc.temp | round(1) }} st. C przekracza zalecane maksimum {{ max_mowing_temperature_c }} st. C, dlatego automatyzacja bedzie szukac chlodniejszej godziny
+                    die vorhergesagte Temperatur von {{ fc.temp | round(1) }} °C überschreitet das empfohlene Maximum von {{ max_mowing_temperature_c }} °C, daher sucht die Automatisierung nach einer kühleren Stunde
                   {% elif (forecast_rain_is_advisory | string | lower) == 'true'
                         and ((fc.rain + future.rain) > (forecast_rain_block_mm | float(0.2)) or fc.condition in bad) %}
-                    prognoza zapowiada opad, ale rzeczywisty czujnik ma pierwszeństwo; robot wystartuje, jeśli w chwili startu czujnik nadal będzie suchy
+                    die Vorhersage kündigt Niederschlag an, aber der tatsächliche Sensor hat Vorrang; der Roboter startet, wenn der Sensor zum Startzeitpunkt immer noch trocken ist
                   {% elif (forecast_rain_is_advisory | string | lower) != 'true'
                         and ((fc.rain + future.rain) > (forecast_rain_block_mm | float(0.2)) or fc.condition in bad) %}
-                    to najbezpieczniejsza następna próba w prognozie, ale suma prognozowanego opadu podczas koszenia wynosi {{ (fc.rain + future.rain) | round(2) }} mm
+                    dies ist der sicherste nächste Versuch in der Vorhersage, aber der vorhergesagte Niederschlag während des Mähens beträgt {{ (fc.rain + future.rain) | round(2) }} mm
                   {% elif (planned_retry_mow_future_status | trim) != 'safe' %}
-                    prognoza nie potwierdza bezpiecznych warunków przez kolejne {{ forecast_dry_horizon_hours }} godz., więc automatyzacja sprawdzi warunki ponownie
+                    die Vorhersage bestätigt keine sicheren Bedingungen für die nächsten {{ forecast_dry_horizon_hours }} Stunden, daher wird die Automatisierung die Bedingungen erneut prüfen
                   {% elif not inside_preferred_window %}
-                    to najbliższa bezpieczna godzina poza preferowanym oknem; w wybranym oknie nie ma warunków spełniających temperaturę, opad i wilgotność
+                    dies ist die nächste sichere Stunde außerhalb des bevorzugten Fensters; im gewählten Fenster gibt es keine Bedingungen, die Temperatur, Niederschlag und Luftfeuchtigkeit erfüllen
                   {% elif urgent_growth and not recent_wet and fc.humidity <= (wet_grass_humidity_percent | float(88)) %}
-                    przyrost trawy jest wysoki, więc automatyzacja wybiera najbliższą bezpieczną próbę zamiast czekać na idealniejsze warunki kolejnego dnia
+                    das Graswachstum ist hoch, daher wählt die Automatisierung den nächsten sicheren Versuch, anstatt auf idealere Bedingungen am nächsten Tag zu warten
                   {% elif recent_wet and (forecast_rain_is_advisory | string | lower) != 'true' %}
-                    automatyzacja przesuwa start po deszczu, żeby nie kosić świeżo mokrego trawnika
+                    die Automatisierung verschiebt den Start nach Regen, um nicht auf frisch nassem Rasen zu mähen
                   {% elif fc.humidity > (wet_grass_humidity_percent | float(88)) %}
-                    to najlepsza następna próba, ale wilgotność nadal jest wysoka, więc start może zostać ponownie przesunięty
+                    dies ist der beste nächste Versuch, aber die Luftfeuchtigkeit ist immer noch hoch, daher könnte der Start erneut verschoben werden
                   {% else %}
-                    prognoza pokazuje brak deszczu, przerwę po opadach i najniższe ryzyko mokrej trawy w wybranym oknie
+                    die Vorhersage zeigt keinen Regen, eine Pause nach Niederschlägen und das geringste Risiko von nassem Gras im gewählten Fenster
                   {% endif %}
                 {% endif %}
               planned_retry_mow_forecast: >-
                 {% if weather_forecast_at_start is not defined or weather_forecast_at_start is not mapping %}
-                  unknown;brak prognozy godzinowej dla wskazanego terminu
+                  unknown;keine stündliche Vorhersage für den angegebenen Termin
                 {% else %}
                   {% set items = weather_forecast_at_start.get(forecast_weather_entity | trim, {}).get('forecast', []) %}
                   {% set limited_items = items[:(weather_forecast_max_items | int(120))] %}
@@ -2175,51 +2176,51 @@ actions:
                       and fc.humidity <= (wet_grass_humidity_percent | float(88))
                       and (mowing_window_preset != 'night' or (fiatlux_installed | bool)) %}
                   {% set condition_names = {
-                    'clear-night': 'bezchmurnie',
-                    'cloudy': 'pochmurno',
-                    'exceptional': 'nietypowe warunki',
-                    'fog': 'mgła',
-                    'hail': 'grad',
-                    'lightning': 'burze',
-                    'lightning-rainy': 'burze z deszczem',
-                    'partlycloudy': 'częściowe zachmurzenie',
-                    'pouring': 'ulewny deszcz',
-                    'rainy': 'deszcz',
-                    'snowy': 'śnieg',
-                    'snowy-rainy': 'deszcz ze śniegiem',
-                    'sunny': 'słonecznie',
-                    'windy': 'wietrznie',
-                    'windy-variant': 'wietrznie z zachmurzeniem'
+                    'clear-night': 'klar',
+                    'cloudy': 'bewölkt',
+                    'exceptional': 'außergewöhnliche Bedingungen',
+                    'fog': 'Nebel',
+                    'hail': 'Hagel',
+                    'lightning': 'Gewitter',
+                    'lightning-rainy': 'Gewitter mit Regen',
+                    'partlycloudy': 'teilweise bewölkt',
+                    'pouring': 'starker Regen',
+                    'rainy': 'Regen',
+                    'snowy': 'Schnee',
+                    'snowy-rainy': 'Schneeregen',
+                    'sunny': 'sonnig',
+                    'windy': 'windig',
+                    'windy-variant': 'windig mit Wolken'
                   } %}
                   {% set condition_label = condition_names.get(fc.condition, fc.condition if fc.condition else 'brak opisu') %}
-                  {{ 'safe' if safe else 'unsafe' }};{{ condition_label }}, temperatura {{ fc.temp | round(1) }} st. C, opad w godzinie startu {{ fc.rain | round(2) }} mm, opad przez kolejne {{ forecast_dry_horizon_hours }} godz. {{ future.rain | round(2) }} mm, najwyższe ryzyko deszczu {{ [fc.probability, future.probability] | max | round(0) }}%, wilgotność {{ fc.humidity | round(0) }}%{% if (smart_weather_context_available | string | lower) == 'true' %}, pewność MeteoFusion {{ fc.confidence | round(0) }}%{% endif %}
+                  {{ 'safe' if safe else 'unsafe' }};{{ condition_label }}, Temperatur {{ fc.temp | round(1) }} °C, Niederschlag in der Startstunde {{ fc.rain | round(2) }} mm, Niederschlag in den nächsten {{ forecast_dry_horizon_hours }} Std. {{ future.rain | round(2) }} mm, höchstes Regenrisiko {{ [fc.probability, future.probability] | max | round(0) }}%, Luftfeuchtigkeit {{ fc.humidity | round(0) }}%{% if (smart_weather_context_available | string | lower) == 'true' %}, MeteoFusion-Sicherheit {{ fc.confidence | round(0) }}%{% endif %}
                 {% endif %}
           - variables:
               retry_notification_details: |
-                Trawa:
+                Gras:
                 Skumulowany przyrost: {{ estimated_growth_mm }} mm.
 
                 {% if (planned_retry_mow_forecast | trim).startswith('safe;') %}
-                Następne koszenie:
+                Nächstes Mähen:
                 {{ planned_retry_mow_label | trim }}.
 
-                Prognoza podczas koszenia:
+                Vorhersage während des Mähens:
                 {{ (planned_retry_mow_forecast | trim).split(';', 1)[1] }}.
                 {% elif (technical_retry_allowed | string | lower) == 'true' %}
-                Następna próba:
+                Nächster Versuch:
                 {{ planned_retry_mow_label | trim }}.
 
-                Uwagi:
-                To szybka ponowna próba po przerwaniu technicznym.
-                Aktualne warunki są spełnione, więc automatyzacja nie czeka do końca okna koszenia.
+                Hinweise:
+                Dies ist ein schneller erneuter Versuch nach einer technischen Unterbrechung.
+                Aktuelle Bedingungen sind erfüllt, daher wartet die Automatisierung nicht bis zum Ende des Mähfensters.
                 {% else %}
-                Nowy zapisany termin:
+                Neuer gespeicherter Termin:
                 {{ planned_retry_mow_label | trim }}.
 
-                Uwagi:
-                Prognoza nie potwierdza jeszcze całego bezpiecznego cyklu.
-                Termin nie będzie zmieniany w tle; rzeczywiste warunki zostaną
-                ponownie sprawdzone dokładnie w podanej godzinie.
+                Hinweise:
+                Die Vorhersage bestätigt noch nicht den gesamten sicheren Zyklus.
+                Der Termin wird im Hintergrund nicht geändert; die tatsächlichen Bedingungen werden
+                genau zur angegebenen Stunde erneut überprüft.
                 {% endif %}
           - choose:
               - conditions:
@@ -2233,7 +2234,7 @@ actions:
                             value_template: "{{ (next_mow_helper | default('', true) | length) > 0 }}"
                         sequence:
                           - action: input_datetime.set_datetime
-                            alias: Przesun nastepne koszenie
+                            alias: Nächstes Mähen verschieben
                             target:
                               entity_id: "{{ next_mow_helper }}"
                             data:
@@ -2241,27 +2242,27 @@ actions:
                   - action: persistent_notification.create
                     data:
                       notification_id: "{{ notification_id }}"
-                      title: "Worx: koszenie przełożone"
+                      title: "Worx: Mähen verschoben"
                       message: |
-                        Planowany start:
+                        Geplanter Start:
                         {{ current_time_label | trim }}.
 
-                        Powód:
+                        Grund:
                         {{ effective_start_block_reason | trim }}.
 
                         {{ retry_notification_details | trim }}
-                  - stop: Warunki koszenia nie sa spelnione; przesunieto nastepne koszenie.
+                  - stop: Mähbedingungen nicht erfüllt; nächstes Mähen verschoben.
           - variables:
               mowing_cycle_started_at: "{{ now().strftime('%d.%m %H:%M') }}"
               mowing_cycle_started_ts: "{{ as_timestamp(now()) }}"
           - action: worx_vision_cloud.start_one_time_mowing
-            alias: Uruchom samo przycinanie krawedzi
+            alias: Nur Kantenschnitt starten
             data:
               entity_id: !input mower_entity
               runtime: 0
               edge_cut: true
               zones: []
-          - alias: Poczekaj na potwierdzenie wyjazdu do krawedzi
+          - alias: Auf Bestätigung für Ausfahrt zum Kantenschnitt warten
             repeat:
               while:
                 - condition: template
@@ -2304,19 +2305,19 @@ actions:
                               entity_id: "{{ next_mow_helper }}"
                             data:
                               datetime: "{{ retry_mow_datetime | trim }}"
-                  - stop: Przycinanie krawedzi przerwane przez deszcz.
+                  - stop: Kantenschnitt durch Regen unterbrochen.
               - conditions:
                   - condition: template
                     value_template: "{{ states(mower_entity) in ['docked', 'paused'] }}"
                 sequence:
                   - action: worx_vision_cloud.start_one_time_mowing
-                    alias: Ponow samo przycinanie krawedzi
+                    alias: Kantenschnitt erneut versuchen
                     data:
                       entity_id: !input mower_entity
                       runtime: 0
                       edge_cut: true
                       zones: []
-                  - alias: Poczekaj na potwierdzenie drugiego startu krawedzi
+                  - alias: Auf Bestätigung des zweiten Kantenschnitt-Starts warten
                     repeat:
                       while:
                         - condition: template
@@ -2359,7 +2360,7 @@ actions:
                               entity_id: "{{ next_mow_helper }}"
                             data:
                               datetime: "{{ retry_mow_datetime | trim }}"
-                  - stop: Przycinanie krawedzi przerwane przez deszcz po ponowieniu.
+                  - stop: Kantenschnitt durch Regen nach erneutem Versuch unterbrochen.
               - conditions:
                   - condition: template
                     value_template: "{{ states(mower_entity) in ['docked', 'paused'] }}"
@@ -2374,22 +2375,22 @@ actions:
                               entity_id: "{{ next_mow_helper }}"
                             data:
                               datetime: "{{ retry_mow_datetime | trim }}"
-                  - stop: Nie potwierdzono startu przycinania krawedzi po dwoch probach.
+                  - stop: Start des Kantenschnitts nach zwei Versuchen nicht bestätigt.
           - condition: template
-            alias: Przycinanie krawedzi rozpoczete
+            alias: Kantenschnitt gestartet
             value_template: "{{ states(mower_entity) not in ['docked', 'paused', 'unavailable', 'unknown'] }}"
           - action: persistent_notification.create
             data:
               notification_id: "{{ notification_id }}"
-              title: "Worx: koszenie rozpoczęte"
+              title: "Worx: Mähen gestartet"
               message: |
-                Czas:
+                Zeit:
                 Start: {{ mowing_cycle_started_at }}
 
-                Etap:
-                Przycinanie krawędzi.
-                Następnie robot wróci do bazy, naładuje baterię do
-                {{ post_edge_battery_percent }}% i rozpocznie zwykłe koszenie.
+                Phase:
+                Kantenschnitt.
+                Danach kehrt der Roboter zur Basis zurück, lädt den Akku auf
+                {{ post_edge_battery_percent }}% auf und beginnt mit dem normalen Mähen.
           - wait_template: >-
               {{ (states(rain_binary_sensor) not in ['unknown', 'unavailable', 'none', '']
                   and is_state(rain_binary_sensor, 'on'))
@@ -2399,7 +2400,7 @@ actions:
                        or states(forecast_weather_entity | trim) in ['rainy', 'pouring', 'lightning-rainy', 'snowy-rainy', 'hail']))
                  or state_attr(mower_entity, 'rain_delay') == true
                  or is_state(mower_entity, 'docked') }}
-            alias: Poczekaj na zakonczenie krawedzi i powrot do bazy
+            alias: Auf Abschluss des Kantenschnitts und Rückkehr zur Basis warten
             timeout: "02:00:00"
             continue_on_timeout: true
           - choose:
@@ -2415,7 +2416,7 @@ actions:
                          and state_attr(mower_entity, 'rain_delay') != true }}
                 sequence:
                   - delay: "00:01:00"
-                    alias: Ustabilizuj potwierdzenie bazy po krawedziach
+                    alias: Basis-Bestätigung nach Kanten stabilisieren
                   - wait_template: >-
                       {{ (states(rain_binary_sensor) not in ['unknown', 'unavailable', 'none', '']
                           and is_state(rain_binary_sensor, 'on'))
@@ -2425,7 +2426,7 @@ actions:
                                or states(forecast_weather_entity | trim) in ['rainy', 'pouring', 'lightning-rainy', 'snowy-rainy', 'hail']))
                          or state_attr(mower_entity, 'rain_delay') == true
                          or is_state(mower_entity, 'docked') }}
-                    alias: Potwierdz stabilny powrot do bazy po krawedziach
+                    alias: Stabile Rückkehr zur Basis nach Kanten bestätigen
                     timeout: "00:02:00"
                     continue_on_timeout: true
           - choose:
@@ -2462,17 +2463,17 @@ actions:
                   - action: persistent_notification.create
                     data:
                       notification_id: "{{ notification_id }}"
-                      title: "Worx: koszenie przerwane"
+                      title: "Worx: Mähen unterbrochen"
                       message: |
-                        Czas:
+                        Zeit:
                         Start: {{ mowing_cycle_started_at }}
-                        Koniec: {{ now().strftime('%d.%m %H:%M') }}
+                        Ende: {{ now().strftime('%d.%m %H:%M') }}
 
-                        Powód:
-                        Deszcz przerwał przycinanie krawędzi.
+                        Grund:
+                        Regen hat den Kantenschnitt unterbrochen.
 
                         {{ retry_notification_details | trim }}
-                  - stop: Deszcz przerwal etap krawedzi.
+                  - stop: Regen hat die Kantenphase unterbrochen.
               - conditions:
                   - condition: template
                     value_template: >-
@@ -2499,17 +2500,17 @@ actions:
                   - action: persistent_notification.create
                     data:
                       notification_id: "{{ notification_id }}"
-                      title: "Worx: koszenie przerwane"
+                      title: "Worx: Mähen unterbrochen"
                       message: |
-                        Czas:
+                        Zeit:
                         Start: {{ mowing_cycle_started_at }}
-                        Koniec: {{ now().strftime('%d.%m %H:%M') }}
+                        Ende: {{ now().strftime('%d.%m %H:%M') }}
 
-                        Powód:
-                        Chmura Worx nie potwierdziła powrotu robota do bazy po krawędziach.
+                        Grund:
+                        Die Worx Cloud hat die Rückkehr des Roboters zur Basis nach den Kanten nicht bestätigt.
 
                         {{ retry_notification_details | trim }}
-                  - stop: Chmura Worx nie potwierdzila powrotu do bazy po krawedziach.
+                  - stop: Worx Cloud hat die Rückkehr zur Basis nach Kanten nicht bestätigt.
           - wait_template: >-
               {{ (states(rain_binary_sensor) not in ['unknown', 'unavailable', 'none', '']
                   and is_state(rain_binary_sensor, 'on'))
@@ -2520,7 +2521,7 @@ actions:
                  or state_attr(mower_entity, 'rain_delay') == true
                  or not is_state(mower_entity, 'docked')
                  or (states(battery_sensor) | float(0)) >= (post_edge_battery_percent | float(80)) }}
-            alias: Poczekaj w bazie na naladowanie baterii do 80 procent
+            alias: In der Basis auf Akkuladung auf 80 Prozent warten
             timeout: "08:00:00"
             continue_on_timeout: true
           - choose:
@@ -2548,17 +2549,17 @@ actions:
                   - action: persistent_notification.create
                     data:
                       notification_id: "{{ notification_id }}"
-                      title: "Worx: koszenie przerwane"
+                      title: "Worx: Mähen unterbrochen"
                       message: |
-                        Czas:
+                        Zeit:
                         Start: {{ mowing_cycle_started_at }}
-                        Koniec: {{ now().strftime('%d.%m %H:%M') }}
+                        Ende: {{ now().strftime('%d.%m %H:%M') }}
 
-                        Powód:
-                        Po krawędziach, podczas ładowania, zaczął padać deszcz.
+                        Grund:
+                        Nach den Kanten, während des Aufladens, fing es an zu regnen.
 
                         {{ retry_notification_details | trim }}
-                  - stop: Po krawedziach zaczal padac deszcz.
+                  - stop: Nach den Kanten fing es an zu regnen.
               - conditions:
                   - condition: template
                     value_template: >-
@@ -2577,17 +2578,17 @@ actions:
                   - action: persistent_notification.create
                     data:
                       notification_id: "{{ notification_id }}"
-                      title: "Worx: koszenie przerwane"
+                      title: "Worx: Mähen unterbrochen"
                       message: |
-                        Czas:
+                        Zeit:
                         Start: {{ mowing_cycle_started_at }}
-                        Koniec: {{ now().strftime('%d.%m %H:%M') }}
+                        Ende: {{ now().strftime('%d.%m %H:%M') }}
 
-                        Powód:
-                        Robot opuścił bazę podczas ładowania po krawędziach.
+                        Grund:
+                        Der Roboter hat die Basis beim Aufladen nach den Kanten verlassen.
 
                         {{ retry_notification_details | trim }}
-                  - stop: Robot opuscil baze podczas ladowania po krawedziach.
+                  - stop: Roboter hat die Basis beim Aufladen nach Kanten verlassen.
               - conditions:
                   - condition: template
                     value_template: >-
@@ -2607,18 +2608,18 @@ actions:
                   - action: persistent_notification.create
                     data:
                       notification_id: "{{ notification_id }}"
-                      title: "Worx: koszenie przerwane"
+                      title: "Worx: Mähen unterbrochen"
                       message: |
-                        Czas:
+                        Zeit:
                         Start: {{ mowing_cycle_started_at }}
-                        Koniec: {{ now().strftime('%d.%m %H:%M') }}
+                        Ende: {{ now().strftime('%d.%m %H:%M') }}
 
-                        Powód:
-                        Bateria nie osiągnęła 80% w ciągu 8 godzin.
-                        Aktualnie: {{ states(battery_sensor) }}%.
+                        Grund:
+                        Akku hat 80% nicht innerhalb von 8 Stunden erreicht.
+                        Aktuell: {{ states(battery_sensor) }}%.
 
                         {{ retry_notification_details | trim }}
-                  - stop: Bateria nie osiagnela 80 procent po krawedziach.
+                  - stop: Akku hat nach Kanten 80 Prozent nicht erreicht.
           - variables:
               temperature_after_edges_c: >-
                 {% if temperature_source_entity.split('.')[0] == 'weather' %}
@@ -2636,11 +2637,11 @@ actions:
                   {% set temperature_available = temperature_state not in ['unknown', 'unavailable', 'none', ''] %}
                 {% endif %}
                 {% if not temperature_available %}
-                  nie mozna odczytac aktualnej temperatury zewnetrznej
+                  die aktuelle Außentemperatur kann nicht gelesen werden
                 {% elif (temperature_after_edges_c | float(-99)) < (min_mowing_temperature_c | float(10)) %}
-                  temperatura wynosi {{ temperature_after_edges_c | float | round(1) }} st. C i jest nizsza od wymaganego minimum {{ min_mowing_temperature_c }} st. C
+                  die Temperatur beträgt {{ temperature_after_edges_c | float | round(1) }} °C und liegt unter dem erforderlichen Minimum von {{ min_mowing_temperature_c }} °C
                 {% elif (temperature_after_edges_c | float(-99)) > (max_mowing_temperature_c | float(25)) %}
-                  temperatura wynosi {{ temperature_after_edges_c | float | round(1) }} st. C i przekracza dozwolone maksimum {{ max_mowing_temperature_c }} st. C
+                  die Temperatur beträgt {{ temperature_after_edges_c | float | round(1) }} °C und überschreitet das erlaubte Maximum von {{ max_mowing_temperature_c }} °C
                 {% else %}
                   {{ '' }}
                 {% endif %}
@@ -2716,18 +2717,18 @@ actions:
                   {{ temperature_after_edges_block_reason | trim }}
                 {% elif states(rain_binary_sensor) in ['unknown', 'unavailable', 'none', '']
                       and (smart_weather_rain_rate_available | string | lower) != 'true' %}
-                  nie można odczytać aktualnego stanu opadu ani z czujnika, ani z MeteoFusion HA
+                  der aktuelle Niederschlagsstatus kann weder vom Sensor noch von MeteoFusion HA gelesen werden
                 {% elif state_attr(mower_entity, 'rain_delay') == true %}
-                  chmura Worx nadal zgłasza opóźnienie po deszczu
+                  die Worx Cloud meldet immer noch eine Verzögerung nach Regen
                 {% elif (states(rain_binary_sensor) not in ['unknown', 'unavailable', 'none', '']
                            and is_state(rain_binary_sensor, 'on'))
                       or
                       (states(rain_binary_sensor) in ['unknown', 'unavailable', 'none', '']
                        and ((state_attr(forecast_weather_entity | trim, 'rain_rate') | float(0)) > 0.05
                             or states(forecast_weather_entity | trim) in ['rainy', 'pouring', 'lightning-rainy', 'snowy-rainy', 'hail'])) %}
-                  lokalny pomiar lub MeteoFusion HA wskazuje trwający opad
+                  lokale Messung oder MeteoFusion HA zeigt anhaltenden Niederschlag
                 {% elif humidity_available and humidity_now > (wet_grass_humidity_percent | float(88)) %}
-                  wilgotność powietrza wynosi {{ humidity_now | round(0) }}%, więc trawa może być mokra
+                  die Luftfeuchtigkeit beträgt {{ humidity_now | round(0) }}%, daher könnte das Gras nass sein
                 {% else %}
                   {{ '' }}
                 {% endif %}
@@ -2737,29 +2738,29 @@ actions:
                 {% set target_midnight = as_timestamp((ts | timestamp_custom('%Y-%m-%d', true)) ~ ' 00:00:00') %}
                 {% set today_midnight = as_timestamp(today_at('00:00:00')) %}
                 {% set days = ((target_midnight - today_midnight) / 86400) | round(0) | int %}
-                {% if days <= 0 %}dzis o {{ ts | timestamp_custom('%H:%M', true) }}
-                {% elif days == 1 %}jutro o {{ ts | timestamp_custom('%H:%M', true) }}
-                {% elif days == 2 %}za 2 dni o {{ ts | timestamp_custom('%H:%M', true) }}
-                {% else %}za {{ days }} dni o {{ ts | timestamp_custom('%H:%M', true) }}{% endif %}
+                {% if days <= 0 %}heute um {{ ts | timestamp_custom('%H:%M', true) }}
+                {% elif days == 1 %}morgen um {{ ts | timestamp_custom('%H:%M', true) }}
+                {% elif days == 2 %}in 2 Tagen um {{ ts | timestamp_custom('%H:%M', true) }}
+                {% else %}in {{ days }} Tagen um {{ ts | timestamp_custom('%H:%M', true) }}{% endif %}
               temperature_retry_notification_details: |
-                Trawa:
+                Gras:
                 Skumulowany przyrost: {{ estimated_growth_mm }} mm.
 
                 {% if (planned_retry_mow_forecast | trim).startswith('safe;')
                       and (temperature_retry_datetime | trim) == (planned_retry_mow_datetime | trim) %}
-                Następne koszenie:
+                Nächstes Mähen:
                 {{ temperature_retry_label | trim }}.
 
-                Prognoza podczas koszenia:
+                Vorhersage während des Mähens:
                 {{ (planned_retry_mow_forecast | trim).split(';', 1)[1] }}.
                 {% else %}
-                Nowy zapisany termin:
+                Neuer gespeicherter Termin:
                 {{ temperature_retry_label | trim }}.
 
-                Uwagi:
-                Prognoza nie potwierdza jeszcze całego bezpiecznego cyklu.
-                Termin nie będzie zmieniany w tle; rzeczywiste warunki zostaną
-                ponownie sprawdzone dokładnie w podanej godzinie.
+                Hinweise:
+                Die Vorhersage bestätigt noch nicht den gesamten sicheren Zyklus.
+                Der Termin wird im Hintergrund nicht geändert; die tatsächlichen Bedingungen werden
+                genau zur angegebenen Stunde erneut überprüft.
                 {% endif %}
           - choose:
               - conditions:
@@ -2779,19 +2780,19 @@ actions:
                   - action: persistent_notification.create
                     data:
                       notification_id: "{{ notification_id }}"
-                      title: "Worx: koszenie przerwane"
+                      title: "Worx: Mähen unterbrochen"
                       message: |
-                        Czas:
+                        Zeit:
                         Start: {{ mowing_cycle_started_at }}
-                        Koniec: {{ now().strftime('%d.%m %H:%M') }}
+                        Ende: {{ now().strftime('%d.%m %H:%M') }}
 
-                        Powód:
+                        Grund:
                         {{ post_edge_conditions_block_reason | trim }}.
 
                         {{ temperature_retry_notification_details | trim }}
-                  - stop: Warunki po krawedziach nie pozwalaja uruchomic normalnego koszenia.
+                  - stop: Bedingungen nach den Kanten erlauben keinen Start des normalen Mähens.
           - condition: template
-            alias: Robot w bazie, bateria minimum 80 procent i bezpieczne warunki
+            alias: Roboter in Basis, Akku mind. 80 Prozent und sichere Bedingungen
             value_template: >-
               {{ is_state(mower_entity, 'docked')
                  and (states(battery_sensor) | float(0)) >= (post_edge_battery_percent | float(80))
@@ -2807,13 +2808,13 @@ actions:
                  )
                  and state_attr(mower_entity, 'rain_delay') != true }}
           - action: worx_vision_cloud.start_one_time_mowing
-            alias: Uruchom normalne koszenie jednorazowe
+            alias: Normales einmaliges Mähen starten
             data:
               entity_id: !input mower_entity
               runtime: "{{ normal_mowing_command_runtime_minutes }}"
               edge_cut: false
               zones: []
-          - alias: Poczekaj na potwierdzenie wyjazdu do koszenia
+          - alias: Auf Bestätigung für Ausfahrt zum Mähen warten
             repeat:
               while:
                 - condition: template
@@ -2852,7 +2853,7 @@ actions:
                             value_template: "{{ (next_mow_helper | default('', true) | length) > 0 }}"
                         sequence:
                           - action: input_datetime.set_datetime
-                            alias: Zapisz kolejna probe po deszczu przy starcie
+                            alias: Nächsten Versuch nach Regen beim Start speichern
                             target:
                               entity_id: "{{ next_mow_helper }}"
                             data:
@@ -2860,29 +2861,29 @@ actions:
                   - action: persistent_notification.create
                     data:
                       notification_id: "{{ notification_id }}"
-                      title: "Worx: koszenie przerwane"
+                      title: "Worx: Mähen unterbrochen"
                       message: |
-                        Czas:
+                        Zeit:
                         Start: {{ mowing_cycle_started_at }}
-                        Koniec: {{ now().strftime('%d.%m %H:%M') }}
+                        Ende: {{ now().strftime('%d.%m %H:%M') }}
 
-                        Powód:
-                        Deszcz przed startem zwykłego koszenia.
+                        Grund:
+                        Regen vor dem Start des normalen Mähens.
 
                         {{ retry_notification_details | trim }}
-                  - stop: Start koszenia przerwany przez deszcz.
+                  - stop: Mähstart durch Regen unterbrochen.
               - conditions:
                   - condition: template
                     value_template: "{{ states(mower_entity) in ['docked', 'paused'] }}"
                 sequence:
                   - action: worx_vision_cloud.start_one_time_mowing
-                    alias: Ponow normalne koszenie jednorazowe
+                    alias: Normales einmaliges Mähen erneut versuchen
                     data:
                       entity_id: !input mower_entity
                       runtime: "{{ normal_mowing_command_runtime_minutes }}"
                       edge_cut: false
                       zones: []
-                  - alias: Poczekaj na potwierdzenie drugiego startu koszenia
+                  - alias: Auf Bestätigung des zweiten Mähstarts warten
                     repeat:
                       while:
                         - condition: template
@@ -2921,7 +2922,7 @@ actions:
                             value_template: "{{ (next_mow_helper | default('', true) | length) > 0 }}"
                         sequence:
                           - action: input_datetime.set_datetime
-                            alias: Zapisz kolejna probe po deszczu przy ponowieniu
+                            alias: Nächsten Versuch nach Regen beim erneuten Versuch speichern
                             target:
                               entity_id: "{{ next_mow_helper }}"
                             data:
@@ -2929,17 +2930,17 @@ actions:
                   - action: persistent_notification.create
                     data:
                       notification_id: "{{ notification_id }}"
-                      title: "Worx: koszenie przerwane"
+                      title: "Worx: Mähen unterbrochen"
                       message: |
-                        Czas:
+                        Zeit:
                         Start: {{ mowing_cycle_started_at }}
-                        Koniec: {{ now().strftime('%d.%m %H:%M') }}
+                        Ende: {{ now().strftime('%d.%m %H:%M') }}
 
-                        Powód:
-                        Deszcz podczas ponownego startu zwykłego koszenia.
+                        Grund:
+                        Regen beim erneuten Start des normalen Mähens.
 
                         {{ retry_notification_details | trim }}
-                  - stop: Start koszenia przerwany przez deszcz po ponowieniu.
+                  - stop: Mähstart durch Regen nach erneuten Versuch unterbrochen.
           - choose:
               - conditions:
                   - condition: template
@@ -2951,7 +2952,7 @@ actions:
                             value_template: "{{ (next_mow_helper | default('', true) | length) > 0 }}"
                         sequence:
                           - action: input_datetime.set_datetime
-                            alias: Zapisz kolejna probe po braku startu
+                            alias: Nächsten Versuch nach fehlendem Start speichern
                             target:
                               entity_id: "{{ next_mow_helper }}"
                             data:
@@ -2959,22 +2960,22 @@ actions:
                   - action: persistent_notification.create
                     data:
                       notification_id: "{{ notification_id }}"
-                      title: "Worx: koszenie przerwane"
+                      title: "Worx: Mähen unterbrochen"
                       message: |
-                        Czas:
+                        Zeit:
                         Start: {{ mowing_cycle_started_at }}
-                        Koniec: {{ now().strftime('%d.%m %H:%M') }}
+                        Ende: {{ now().strftime('%d.%m %H:%M') }}
 
-                        Powód:
-                        Zwykłe koszenie nie wystartowało po dwóch próbach.
-                        Stan robota: {{ states(mower_entity) }}.
+                        Grund:
+                        Normales Mähen startete nicht nach zwei Versuchen.
+                        Roboterstatus: {{ states(mower_entity) }}.
 
                         {{ retry_notification_details | trim }}
-                  - stop: Nie potwierdzono startu koszenia po dwoch probach.
+                  - stop: Start des Mähens nach zwei Versuchen nicht bestätigt.
           - condition: template
-            alias: Normalne koszenie rozpoczete
+            alias: Normales Mähen gestartet
             value_template: "{{ states(mower_entity) not in ['docked', 'paused', 'unavailable', 'unknown'] }}"
-          - alias: Koszenie do powrotu robota albo limitu bezpieczenstwa
+          - alias: Mähen bis zur Rückkehr des Roboters oder Sicherheitslimit
             repeat:
               while:
                 - condition: template
@@ -3023,7 +3024,7 @@ actions:
                        or states(forecast_weather_entity | trim) in ['rainy', 'pouring', 'lightning-rainy', 'snowy-rainy', 'hail']))
                  or state_attr(mower_entity, 'rain_delay') == true
                  or is_state(mower_entity, 'docked') }}
-            alias: Poczekaj na powrot do bazy po normalnym koszeniu
+            alias: Auf Rückkehr zur Basis nach normalem Mähen warten
             timeout: "00:30:00"
             continue_on_timeout: true
           - choose:
@@ -3039,7 +3040,7 @@ actions:
                          and state_attr(mower_entity, 'rain_delay') != true }}
                 sequence:
                   - delay: "00:01:00"
-                    alias: Ustabilizuj potwierdzenie bazy po normalnym koszeniu
+                    alias: Basis-Bestätigung nach normalem Mähen stabilisieren
                   - wait_template: >-
                       {{ (states(rain_binary_sensor) not in ['unknown', 'unavailable', 'none', '']
                           and is_state(rain_binary_sensor, 'on'))
@@ -3049,7 +3050,7 @@ actions:
                                or states(forecast_weather_entity | trim) in ['rainy', 'pouring', 'lightning-rainy', 'snowy-rainy', 'hail']))
                          or state_attr(mower_entity, 'rain_delay') == true
                          or is_state(mower_entity, 'docked') }}
-                    alias: Potwierdz stabilny powrot do bazy po normalnym koszeniu
+                    alias: Stabile Rückkehr zur Basis nach normalem Mähen bestätigen
                     timeout: "00:02:00"
                     continue_on_timeout: true
           - variables:
@@ -3061,9 +3062,9 @@ actions:
               whole_cycle_duration_label: >-
                 {% set total = whole_cycle_minutes | int %}
                 {% if total >= 60 %}
-                  {{ total // 60 }} godz. {{ total % 60 }} min
+                  {{ total // 60 }} Std. {{ total % 60 }} Min.
                 {% else %}
-                  {{ total }} min
+                  {{ total }} Min.
                 {% endif %}
           - choose:
               - conditions:
@@ -3327,13 +3328,13 @@ actions:
                         {% set target_midnight = as_timestamp((ts | timestamp_custom('%Y-%m-%d', true)) ~ ' 00:00:00') %}
                         {% set today_midnight = as_timestamp(today_at('00:00:00')) %}
                         {% set days = ((target_midnight - today_midnight) / 86400) | round(0) | int %}
-                        {% if days <= 0 %}dziś o {{ ts | timestamp_custom('%H:%M', true) }}
-                        {% elif days == 1 %}jutro o {{ ts | timestamp_custom('%H:%M', true) }}
-                        {% elif days == 2 %}za 2 dni o {{ ts | timestamp_custom('%H:%M', true) }}
-                        {% else %}za {{ days }} dni o {{ ts | timestamp_custom('%H:%M', true) }}{% endif %}
+                        {% if days <= 0 %}heute um {{ ts | timestamp_custom('%H:%M', true) }}
+                        {% elif days == 1 %}morgen um {{ ts | timestamp_custom('%H:%M', true) }}
+                        {% elif days == 2 %}in 2 Tagen um {{ ts | timestamp_custom('%H:%M', true) }}
+                        {% else %}in {{ days }} Tagen um {{ ts | timestamp_custom('%H:%M', true) }}{% endif %}
                       planned_next_after_reset_reason: >-
                         {% if planning_mode != 'auto' or weather_forecast_after_mow is not defined or weather_forecast_after_mow is not mapping %}
-                          wybrano kolejny termin z ustawionego okna koszenia, bez oceny prognozy godzinowej
+                          Ein weiterer Termin aus dem eingestellten Mähfenster wurde gewählt, ohne Bewertung der stündlichen Vorhersage
                         {% else %}
                           {% set items = weather_forecast_after_mow.get(forecast_weather_entity | trim, {}).get('forecast', []) %}
                           {% set limited_items = items[:(weather_forecast_max_items | int(120))] %}
@@ -3382,32 +3383,32 @@ actions:
                             {% set inside_preferred_window = selected_clock >= primary_start_time_value and selected_clock <= backup_start_time_value %}
                           {% endif %}
                           {% if fc.seen == 0 %}
-                            to najbliższy sensowny termin, ale prognoza godzinowa nie ma już dokładnych danych dla tej godziny
+                            dies ist der nächste sinnvolle Termin, aber die stündliche Vorhersage hat für diese Stunde keine genauen Daten mehr
                           {% elif fc.temp < (min_mowing_temperature_c | float(10)) %}
-                            prognozowana temperatura {{ fc.temp | round(1) }} st. C jest nizsza od zalecanego minimum {{ min_mowing_temperature_c }} st. C, wiec termin moze zostac przesuniety
+                            die vorhergesagte Temperatur von {{ fc.temp | round(1) }} °C liegt unter dem empfohlenen Minimum von {{ min_mowing_temperature_c }} °C, daher könnte der Termin verschoben werden
                           {% elif fc.temp > (max_mowing_temperature_c | float(25)) %}
-                            prognozowana temperatura {{ fc.temp | round(1) }} st. C przekracza zalecane maksimum {{ max_mowing_temperature_c }} st. C, wiec termin moze zostac przesuniety
+                            die vorhergesagte Temperatur von {{ fc.temp | round(1) }} °C überschreitet das empfohlene Maximum von {{ max_mowing_temperature_c }} °C, daher könnte der Termin verschoben werden
                           {% elif (forecast_rain_is_advisory | string | lower) == 'true'
                                 and ((fc.rain + future.rain) > (forecast_rain_block_mm | float(0.2)) or fc.condition in bad) %}
-                            prognoza zapowiada opad, ale rzeczywisty czujnik ma pierwszeństwo; robot wystartuje, jeśli w chwili startu czujnik nadal będzie suchy
+                            die Vorhersage kündigt Niederschlag an, aber der tatsächliche Sensor hat Vorrang; der Roboter startet, wenn der Sensor zum Startzeitpunkt immer noch trocken ist
                           {% elif (forecast_rain_is_advisory | string | lower) != 'true'
                                 and ((fc.rain + future.rain) > (forecast_rain_block_mm | float(0.2)) or fc.condition in bad) %}
-                            to najbezpieczniejszy dostępny termin w prognozie, ale suma prognozowanego opadu podczas koszenia wynosi {{ (fc.rain + future.rain) | round(2) }} mm
+                            dies ist der sicherste verfügbare Termin in der Vorhersage, aber der vorhergesagte Niederschlag während des Mähens beträgt {{ (fc.rain + future.rain) | round(2) }} mm
                           {% elif (planned_next_after_reset_future_status | trim) != 'safe' %}
-                            prognoza nie potwierdza bezpiecznych warunków przez kolejne {{ forecast_dry_horizon_hours }} godz., więc termin może zostać ponownie przesunięty
+                            die Vorhersage bestätigt keine sicheren Bedingungen für die nächsten {{ forecast_dry_horizon_hours }} Stunden, daher könnte der Termin erneut verschoben werden
                           {% elif not inside_preferred_window %}
-                            to najbliższa bezpieczna godzina poza preferowanym oknem; w wybranym oknie nie ma warunków spełniających temperaturę, opad i wilgotność
+                            dies ist die nächste sichere Stunde außerhalb des bevorzugten Fensters; im gewählten Fenster gibt es keine Bedingungen, die Temperatur, Niederschlag und Luftfeuchtigkeit erfüllen
                           {% elif recent_wet and (forecast_rain_is_advisory | string | lower) != 'true' %}
-                            automatyzacja odczeka po deszczu, żeby kolejne koszenie nie weszło na świeżo mokry trawnik
+                            die Automatisierung wartet nach Regen, damit das nächste Mähen nicht auf frisch nassem Rasen stattfindet
                           {% elif fc.humidity > (wet_grass_humidity_percent | float(88)) %}
-                            to najlepszy dostępny termin, ale wilgotność nadal jest wysoka, więc start może zostać ponownie przesunięty
+                            dies ist der beste verfügbare Termin, aber die Luftfeuchtigkeit ist immer noch hoch, daher könnte der Start erneut verschoben werden
                           {% else %}
-                            prognoza pokazuje brak deszczu, przerwę po opadach i najniższe ryzyko mokrej trawy w wybranym oknie
+                            die Vorhersage zeigt keinen Regen, eine Pause nach Niederschlägen und das geringste Risiko von nassem Gras im gewählten Fenster
                           {% endif %}
                         {% endif %}
                       planned_next_after_reset_forecast: >-
                         {% if weather_forecast_after_mow is not defined or weather_forecast_after_mow is not mapping %}
-                          unknown;brak prognozy godzinowej dla wskazanego terminu
+                          unknown;keine stündliche Vorhersage für den angegebenen Termin
                         {% else %}
                           {% set items = weather_forecast_after_mow.get(forecast_weather_entity | trim, {}).get('forecast', []) %}
                           {% set limited_items = items[:(weather_forecast_max_items | int(120))] %}
@@ -3459,24 +3460,24 @@ actions:
                               and fc.humidity <= (wet_grass_humidity_percent | float(88))
                               and (mowing_window_preset != 'night' or (fiatlux_installed | bool)) %}
                           {% set condition_names = {
-                            'clear-night': 'bezchmurnie',
-                            'cloudy': 'pochmurno',
-                            'exceptional': 'nietypowe warunki',
-                            'fog': 'mgła',
-                            'hail': 'grad',
-                            'lightning': 'burze',
-                            'lightning-rainy': 'burze z deszczem',
-                            'partlycloudy': 'częściowe zachmurzenie',
-                            'pouring': 'ulewny deszcz',
-                            'rainy': 'deszcz',
-                            'snowy': 'śnieg',
-                            'snowy-rainy': 'deszcz ze śniegiem',
-                            'sunny': 'słonecznie',
-                            'windy': 'wietrznie',
-                            'windy-variant': 'wietrznie z zachmurzeniem'
+                            'clear-night': 'klar',
+                            'cloudy': 'bewölkt',
+                            'exceptional': 'außergewöhnliche Bedingungen',
+                            'fog': 'Nebel',
+                            'hail': 'Hagel',
+                            'lightning': 'Gewitter',
+                            'lightning-rainy': 'Gewitter mit Regen',
+                            'partlycloudy': 'teilweise bewölkt',
+                            'pouring': 'starker Regen',
+                            'rainy': 'Regen',
+                            'snowy': 'Schnee',
+                            'snowy-rainy': 'Schneeregen',
+                            'sunny': 'sonnig',
+                            'windy': 'windig',
+                            'windy-variant': 'windig mit Wolken'
                           } %}
                           {% set condition_label = condition_names.get(fc.condition, fc.condition if fc.condition else 'brak opisu') %}
-                          {{ 'safe' if safe else 'unsafe' }};{{ condition_label }}, temperatura {{ fc.temp | round(1) }} st. C, opad w godzinie startu {{ fc.rain | round(2) }} mm, opad przez kolejne {{ forecast_dry_horizon_hours }} godz. {{ future.rain | round(2) }} mm, najwyższe ryzyko deszczu {{ [fc.probability, future.probability] | max | round(0) }}%, wilgotność {{ fc.humidity | round(0) }}%{% if (smart_weather_context_available | string | lower) == 'true' %}, pewność MeteoFusion {{ fc.confidence | round(0) }}%{% endif %}
+                          {{ 'safe' if safe else 'unsafe' }};{{ condition_label }}, Temperatur {{ fc.temp | round(1) }} °C, Niederschlag in der Startstunde {{ fc.rain | round(2) }} mm, Niederschlag in den nächsten {{ forecast_dry_horizon_hours }} Std. {{ future.rain | round(2) }} mm, höchstes Regenrisiko {{ [fc.probability, future.probability] | max | round(0) }}%, Luftfeuchtigkeit {{ fc.humidity | round(0) }}%{% if (smart_weather_context_available | string | lower) == 'true' %}, MeteoFusion-Sicherheit {{ fc.confidence | round(0) }}%{% endif %}
                         {% endif %}
                   - action: input_datetime.set_datetime
                     target:
@@ -3502,32 +3503,32 @@ actions:
                   - action: persistent_notification.create
                     data:
                       notification_id: "{{ notification_id }}"
-                      title: "Worx: koszenie zakończone"
+                      title: "Worx: Mähen abgeschlossen"
                       message: |
-                        Czas:
+                        Zeit:
                         Start: {{ mowing_cycle_started_at }}
-                        Koniec: {{ mowing_cycle_finished_at }}
-                        Cały cykl, wraz z ładowaniem: {{ whole_cycle_duration_label | trim }}
+                        Ende: {{ mowing_cycle_finished_at }}
+                        Gesamter Zyklus, inkl. Aufladen: {{ whole_cycle_duration_label | trim }}
 
-                        Tryb robota:
+                        Robotertyp:
                         {{ normal_mowing_mode_label | trim }}.
 
-                        Trawa:
-                        Skumulowany przyrost: 0 mm.
+                        Gras:
+                        Kumuliertes Wachstum: 0 mm.
 
                         {% if (planned_next_after_reset_forecast | trim).startswith('safe;') %}
-                        Następne koszenie:
+                        Nächstes Mähen:
                         {{ planned_next_after_reset_label | trim }}.
 
-                        Prognoza podczas koszenia:
+                        Vorhersage während des Mähens:
                         {{ (planned_next_after_reset_forecast | trim).split(';', 1)[1] }}.
                         {% else %}
-                        Następny zapisany termin:
+                        Nächster gespeicherter Termin:
                         {{ planned_next_after_reset_label | trim }}.
 
-                        Uwagi:
-                        Prognoza nie potwierdza jeszcze całego bezpiecznego cyklu.
-                        Termin pozostanie zapisany do następnego dziennego przeliczenia.
+                        Hinweise:
+                        Die Vorhersage bestätigt noch nicht den gesamten sicheren Zyklus.
+                        Der Termin bleibt bis zur nächsten täglichen Berechnung gespeichert.
                         {% endif %}
             default:
               - action: input_number.set_value
@@ -3548,12 +3549,12 @@ actions:
               - action: persistent_notification.create
                 data:
                   notification_id: "{{ notification_id }}"
-                  title: "Worx: koszenie przerwane"
+                  title: "Worx: Mähen unterbrochen"
                   message: |
-                    Czas:
+                    Zeit:
                     Start: {{ mowing_cycle_started_at }}
-                    Koniec: {{ mowing_cycle_finished_at }}
-                    Czas cyklu do przerwania: {{ whole_cycle_duration_label | trim }}
+                    Ende: {{ mowing_cycle_finished_at }}
+                    Zykluszeit bis zur Unterbrechung: {{ whole_cycle_duration_label | trim }}
 
                     {% if (states(rain_binary_sensor) not in ['unknown', 'unavailable', 'none', '']
                            and is_state(rain_binary_sensor, 'on'))
@@ -3562,11 +3563,11 @@ actions:
                            and ((state_attr(forecast_weather_entity | trim, 'rain_rate') | float(0)) > 0.05
                                 or states(forecast_weather_entity | trim) in ['rainy', 'pouring', 'lightning-rainy', 'snowy-rainy', 'hail']))
                           or state_attr(mower_entity, 'rain_delay') == true %}
-                    Powód:
-                    Deszcz.
+                    Grund:
+                    Regen.
                     {% else %}
-                    Powód:
-                    Robot nie potwierdził powrotu do bazy.
+                    Grund:
+                    Der Roboter hat die Rückkehr zur Basis nicht bestätigt.
                     {% endif %}
 
                     {{ retry_notification_details | trim }}
